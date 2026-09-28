@@ -15,7 +15,7 @@ See the [dependency pins](../../README.md#dependencies).
 
 From the repository root, use `task gallery -- <flags>` to run the gallery.
 `task build-web` prepares both browser examples; `task serve-gallery` serves
-this one. Apply the browser asset overlay below after generating assets.
+this one. go-booba v0.7.0 bundles the required terminal assets.
 
 ## Native
 
@@ -38,17 +38,19 @@ and datum in the header. See [all chart controls](../../API.md#interaction-and-e
 
 ## Browser
 
+For the stock Go/TinyGo comparison page, use `task build-wasm-site` and
+`task serve-wasm-site` from the root. See [demo site instructions](../../web/README.md).
+Both variants use Kitty shared memory. The commands below build and serve the
+standalone gallery with the same bundled terminal assets.
+
 ```sh
 GOOS=js GOARCH=wasm go build -o web/app.wasm .
 go tool booba-assets web/
-cp ~/projects/ghostty-web-kittyfix/dist/*.js web/ghostty-web/
-cp ~/projects/ghostty-web-kittyfix/ghostty-vt.wasm web/ghostty-web/
 python3 -m http.server 8766 --bind 127.0.0.1 -d web
 ```
 
-Open http://127.0.0.1:8766. This build uses the pinned Bubble Tea WASM fork.
-The copy commands install the local ghostty-web assets needed for shared memory;
-those assets are not distributed with ntcharts3d.
+Open http://127.0.0.1:8766. This build uses go-booba v0.7.0 and its pinned
+Bubble Tea WASM fork. The header shows `Kitty/shm` when shared memory is active.
 
 ## Rendering and transport
 
@@ -59,4 +61,4 @@ Embedded charts select transport with `ntcharts3d.WithKittyMedium`.
 
 If WebGPU is unavailable, the chart falls back to software. Kitty/glyph output
 is independent of that choice. See the [API limits](../../API.md#limits-and-fallback)
-and [current validation results](../../STATUS.md#validation).
+and [demo site build instructions](../../web/README.md).

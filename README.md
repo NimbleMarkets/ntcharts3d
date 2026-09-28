@@ -46,27 +46,30 @@ repository root. `task` builds the library and native examples into `bin/`.
 | `task go-tidy` | Update module files in all three modules |
 | `task build-web` | Compile both WASM examples and generate browser assets |
 | `task serve-gallery` / `task serve-transport` | Serve generated browser examples |
+| `task build-wasm-site` / `task serve-wasm-site` | Build and serve the Go/TinyGo demo page |
 | `task clean` | Remove compiled outputs, keeping browser assets |
 
 Builds and CI check module files without updating them.
-After `task build-web`, apply the ghostty-web overlay described in each example
-before testing shared memory. Asset generation replaces any previous overlay.
+`task build-web` generates the browser assets bundled with go-booba v0.7.0,
+including Kitty shared-memory support. No local terminal asset overlay is needed.
 
 GitHub Actions runs `task ci` on Linux and macOS for pushes and pull requests.
 Hardware GPU tests run separately with `task test-gpu`. WASM compilation does
-not verify browser rendering. Deployment is not configured; browser assets
-still need the local overlay.
+not verify browser rendering. A separate Pages workflow builds the gallery with
+Go and TinyGo and deploys from `main`. See the [demo site instructions](web/README.md).
+The Pages gallery uses Kitty shared memory with the bundled terminal assets.
 
 ## Dependencies
 
-Requires Go 1.26. The library and both examples pin ntcharts to upstream
+The library requires Go 1.26; the examples require Go 1.26.8. The library and
+both examples pin ntcharts to upstream
 commit [`4777228ed363`](https://github.com/NimbleMarkets/ntcharts/commit/4777228ed363ab15755715840089133a1a362c83),
 which includes the Kitty transport APIs. Go records this unreleased commit as
 `v2.3.1-0.20260927013859-4777228ed363`. No local ntcharts checkout is needed.
 
 The gallery's `ntcharts3d => ../..` replacement uses this repository directly.
-Both examples use a Bubble Tea WASM fork. Browser shared memory requires the
-local ghostty-web assets listed in their instructions.
+Both examples use go-booba v0.7.0 and its Bubble Tea WASM fork at `1b36865b418a`.
+The bundled ghostty-web assets support browser shared memory.
 
 ## Ownership
 

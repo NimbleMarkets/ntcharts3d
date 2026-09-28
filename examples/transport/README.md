@@ -23,7 +23,7 @@ Application FPS measures frame submission, not the terminal's display refresh.
 
 From the repository root, use `task transport -- <flags>` to run this example.
 `task build-web` prepares both browser examples; `task serve-transport` serves
-this one. Apply the browser asset overlay below after generating assets.
+this one. go-booba v0.7.0 bundles the required terminal assets.
 
 This example is its own Go module. The go-booba pin sets
 `TERM_PROGRAM=ghostty` so picture's Kitty probe runs in the browser.
@@ -41,14 +41,11 @@ Browser:
 ```sh
 GOOS=js GOARCH=wasm go build -o web/app.wasm .
 go tool booba-assets web/
-# Until go-booba includes the terminal changes, overlay the local fork:
-cp ~/projects/ghostty-web-kittyfix/dist/*.js web/ghostty-web/
-cp ~/projects/ghostty-web-kittyfix/ghostty-vt.wasm web/ghostty-web/
 python3 -m http.server -d web 8765   # then open http://localhost:8765/
 ```
 
 The browser build needs the pinned Bubble Tea fork `replace` already in
-`go.mod` (upstream v2.0.9 has no `js/wasm` runtime).
+`go.mod` from go-booba v0.7.0.
 
 Refresh the page after rebuilding, then press `m` to enable shared memory.
 The header should show `shm`; `m` again returns to the selected direct format.
@@ -56,8 +53,8 @@ The header should show `shm`; `m` again returns to the selected direct format.
 the direct format. Native shared memory works on macOS with CGO and on Linux
 with a local Kitty-capable terminal that supports `t=s`. Use direct transmission
 over SSH. Unsupported builds, older browser terminals, and allocation failures
-fall back to direct transmission. The header always reports the actual path. Keep the patched JS
-and WASM together, and repeat the overlay after regenerating assets.
+fall back to direct transmission. The header always reports the actual path. `go tool booba-assets web/` installs
+the matching JavaScript and WASM files; no local overlay is needed.
 
 ### Over SSH
 
@@ -155,7 +152,6 @@ Shared memory removes PNG encoding and decoding from that browser frame budget.
 ## Remaining integration
 
 - Replace the ntcharts pseudo-version with a release tag once available.
-- Ship matching ghostty-web JS/WASM assets through go-booba so the manual overlay is unnecessary.
 - Verify shared-memory display in a local Linux Kitty-capable terminal; Linux lifecycle tests now pass on dwarfspark.
 
 Native shared memory remains opt-in. Automatically selecting it would require

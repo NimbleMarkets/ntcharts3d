@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ntcharts3d — Interactive demos</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./"><img src="favicon.svg" width="32" height="32" alt="">ntcharts3d</a>
+    <nav aria-label="Project links">
+      <a href="https://github.com/NimbleMarkets/ntcharts3d">GitHub</a>
+      <a href="https://github.com/NimbleMarkets/ntcharts3d/blob/main/API.md">API guide</a>
+      <a href="https://nimblemarkets.github.io/ntcharts/">ntcharts demos ↗</a>
+    </nav>
+  </header>
+  <main>
+    <div class="intro">
+      <p class="eyebrow">Nimble Terminal Charts</p>
+      <h1>3D charts. In a terminal. In your browser.</h1>
+      <p>Explore scatter plots, surfaces, and bars. The same Go gallery runs here with either compiler.</p>
+    </div>
+    <section aria-label="Interactive gallery">
+      <div class="demo-toolbar">
+        <nav class="compilers" aria-label="Compiler">
+          <a href="?compiler=go" data-compiler="go">Stock Go</a>
+          <a href="?compiler=tinygo" data-compiler="tinygo">TinyGo</a>
+        </nav>
+        <a id="open-demo" href="go/" target="_blank" rel="noopener">Open full screen ↗</a>
+      </div>
+      <p id="build-info" class="build-info" aria-live="polite"></p>
+      <div class="terminal-frame">
+        <iframe id="demo" title="ntcharts3d gallery" allow="fullscreen"></iframe>
+      </div>
+      <p class="controls"><kbd>1</kbd> scatter · <kbd>2</kbd> surface · <kbd>3</kbd> bars · drag to orbit · scroll to zoom · <kbd>b</kbd> grid · <kbd>r</kbd> rotation</p>
+      <p class="hint">Click the chart to use keyboard controls. WebGPU renders the chart where available; software rendering is the fallback.</p>
+    </section>
+    <noscript>This demo needs JavaScript and WebAssembly.</noscript>
+  </main>
+  <footer>Built with <a href="https://github.com/NimbleMarkets/go-booba">go-booba</a> and <a href="https://github.com/NimbleMarkets/go-gpuimage">go-gpuimage</a>.</footer>
+  <script type="module" src="site.js"></script>
+</body>
+</html>

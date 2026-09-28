@@ -37,13 +37,13 @@ tasks:
   fmt:
     desc: Format Go source
     cmds:
-      - gofmt -w *.go math3d/*.go examples/gallery/*.go examples/transport/*.go
+      - gofmt -w *.go math3d/*.go cmd/wasm-build/*.go examples/gallery/*.go examples/transport/*.go
 
   fmt-check:
     desc: Check Go formatting
     cmds:
       - |
-        unformatted_files=$(gofmt -l *.go math3d/*.go examples/gallery/*.go examples/transport/*.go)
+        unformatted_files=$(gofmt -l *.go math3d/*.go cmd/wasm-build/*.go examples/gallery/*.go examples/transport/*.go)
         if [ -n "$unformatted_files" ]; then
           printf '%s\n' "$unformatted_files"
           exit 1
@@ -180,3 +180,20 @@ tasks:
     cmds:
       - rm -f bin/ntcharts3d-gallery bin/ntcharts3d-transport
       - rm -f examples/gallery/web/app.wasm examples/transport/web/app.wasm
+
+  build-wasm-site:
+    desc: Build the Go and TinyGo demo site into web/dist
+    vars:
+      TINYGO: '{{.TINYGO | default "tinygo"}}'
+    env:
+      GOTOOLCHAIN: go1.26.8
+    cmds:
+      - go run ./cmd/wasm-build -tinygo '{{.TINYGO}}'
+
+  serve-wasm-site:
+    desc: Serve the built demo site at http://localhost:8768
+    preconditions:
+      - sh: test -f web/dist/builds.json
+        msg: Run task build-wasm-site first.
+    cmds:
+      - python3 -m http.server 8768 --bind 127.0.0.1 -d web/dist

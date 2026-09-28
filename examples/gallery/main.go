@@ -173,5 +173,9 @@ func run() error {
 	if s.Err() != nil {
 		return s.Err()
 	}
+	if runtime.GOOS == "js" {
+		// TinyGo 0.42 cannot use Bubble Tea's signal handler in the browser.
+		return booba.Run(g, tea.WithoutSignalHandler())
+	}
 	return booba.Run(g)
 }

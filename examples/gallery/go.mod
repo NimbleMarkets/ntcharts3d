@@ -1,14 +1,14 @@
 module github.com/NimbleMarkets/ntcharts3d/examples/gallery
 
-go 1.26.0
+go 1.26.8
 
 require (
-	charm.land/bubbletea/v2 v2.0.9
+	charm.land/bubbletea/v2 v2.0.10
 	charm.land/lipgloss/v2 v2.0.6 // indirect
-	github.com/NimbleMarkets/go-booba v0.6.1-0.20260511134559-58814d532cc1
+	github.com/NimbleMarkets/go-booba v0.7.0
 	github.com/NimbleMarkets/go-gpuimage v0.1.0 // indirect
 	github.com/NimbleMarkets/ntcharts/v2 v2.3.1-0.20260927013859-4777228ed363
-	github.com/charmbracelet/ultraviolet v0.0.0-20260910203606-6c9e17dc7a16 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260928045949-bbf040aedf25 // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/gogpu/gputypes v0.8.0 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
@@ -40,7 +40,7 @@ require (
 	golang.org/x/text v0.42.0 // indirect
 )
 
-replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20260506185856-6506c47fa2f3
+replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20260928192001-1b36865b418a
 
 tool github.com/NimbleMarkets/go-booba/cmd/booba-assets
 

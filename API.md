@@ -271,4 +271,4 @@ Normal tests need no GPU. Tests and benchmarks tagged `webgpu` require a
 hardware adapter. Do not use `-race` with native GPU tests across the FFI boundary.
 
 See the [gallery](examples/gallery/README.md) for native and browser commands,
-and [current status](STATUS.md) for validation results.
+and the [Go/TinyGo demo site](web/README.md) for GitHub Pages builds.
