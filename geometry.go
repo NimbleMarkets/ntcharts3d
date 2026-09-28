@@ -1,0 +1,101 @@
+// ntcharts3d - Copyright (c) 2026 Neomantra Corp.
+
+package ntcharts3d
+
+import (
+	"fmt"
+	"image/color"
+
+	"github.com/NimbleMarkets/ntcharts3d/math3d"
+)
+
+type Point struct {
+	Position math3d.Vec3
+	Radius   float32
+	Color    color.RGBA
+	Datum    int
+}
+
+type Vertex struct {
+	Position, Normal math3d.Vec3
+	Color            color.RGBA
+}
+
+type Box struct {
+	Min, Size math3d.Vec3
+	Color     color.RGBA
+	Datum     int
+}
+
+// Geometry contains points, indexed triangles, boxes, and line pairs.
+// Custom Series must not mutate geometry after returning it to the model.
+type Geometry struct {
+	Points        []Point
+	Vertices      []Vertex
+	Indices       []uint32
+	Boxes         []Box
+	Lines         []Vertex
+	Labels        []string
+	Bounds        math3d.AABB
+	ColorMin      float32
+	ColorMax      float32
+	HasColorRange bool
+}
+
+func validateGeometry(g Geometry) error {
+	if g.HasColorRange && (!validFloat(g.ColorMin, g.ColorMax) || g.ColorMax < g.ColorMin) {
+		return fmt.Errorf("ntcharts3d: invalid color range")
+	}
+	for _, p := range g.Points {
+		if !validFloat(p.Position.X, p.Position.Y, p.Position.Z, p.Radius) || p.Radius < 1 || p.Radius > 32 {
+			return fmt.Errorf("ntcharts3d: invalid point geometry")
+		}
+	}
+	for _, v := range g.Vertices {
+		if !validFloat(v.Position.X, v.Position.Y, v.Position.Z, v.Normal.X, v.Normal.Y, v.Normal.Z) {
+			return fmt.Errorf("ntcharts3d: non-finite vertex")
+		}
+	}
+	for _, v := range g.Lines {
+		if !validFloat(v.Position.X, v.Position.Y, v.Position.Z) {
+			return fmt.Errorf("ntcharts3d: non-finite line")
+		}
+	}
+	for _, b := range g.Boxes {
+		if !validFloat(b.Min.X, b.Min.Y, b.Min.Z, b.Size.X, b.Size.Y, b.Size.Z) || min(b.Size.X, b.Size.Y, b.Size.Z) < 0 {
+			return fmt.Errorf("ntcharts3d: invalid box")
+		}
+	}
+	if g.Bounds.IsValid() && (!validFloat(g.Bounds.Min.X, g.Bounds.Min.Y, g.Bounds.Min.Z, g.Bounds.Max.X, g.Bounds.Max.Y, g.Bounds.Max.Z) || g.Bounds.Max.X < g.Bounds.Min.X || g.Bounds.Max.Y < g.Bounds.Min.Y || g.Bounds.Max.Z < g.Bounds.Min.Z) {
+		return fmt.Errorf("ntcharts3d: invalid bounds")
+	}
+
+	if len(g.Points) > MaxPoints || len(g.Vertices) > 512*512 || len(g.Indices) > 6*512*512 || len(g.Boxes) > 512*512 || len(g.Lines) > 2*512*512 {
+		return fmt.Errorf("ntcharts3d: geometry exceeds v0 cap")
+	}
+	if len(g.Indices)%3 != 0 || len(g.Lines)%2 != 0 {
+		return fmt.Errorf("ntcharts3d: incomplete triangle or line")
+	}
+	for _, i := range g.Indices {
+		if int(i) >= len(g.Vertices) {
+			return fmt.Errorf("ntcharts3d: invalid vertex index")
+		}
+	}
+	return nil
+}
+
+// boxVertices uses outward counterclockwise faces, matching the GPU box shader.
+func boxVertices(b Box) []Vertex {
+	corners := []math3d.Vec3{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 0, Y: 1, Z: 0}, {X: 0, Y: 0, Z: 1}, {X: 1, Y: 0, Z: 1}, {X: 1, Y: 1, Z: 1}, {X: 0, Y: 1, Z: 1}}
+	faces := [][4]int{{0, 3, 2, 1}, {4, 5, 6, 7}, {0, 1, 5, 4}, {3, 7, 6, 2}, {0, 4, 7, 3}, {1, 2, 6, 5}}
+	out := make([]Vertex, 0, 36)
+	for _, f := range faces {
+		n := corners[f[1]].Sub(corners[f[0]]).Cross(corners[f[2]].Sub(corners[f[0]])).Normalize()
+		for _, j := range []int{0, 1, 2, 0, 2, 3} {
+			p := corners[f[j]]
+			p = b.Min.Add(math3d.Vec3{X: p.X * b.Size.X, Y: p.Y * b.Size.Y, Z: p.Z * b.Size.Z})
+			out = append(out, Vertex{p, n, b.Color})
+		}
+	}
+	return out
+}

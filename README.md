@@ -1,0 +1,79 @@
+# ntcharts3d
+
+3D charts for Bubble Tea terminals and go-booba browser applications.
+
+```go
+import "github.com/NimbleMarkets/ntcharts3d"
+```
+
+One `ntcharts3d.Model` combines named scatter, surface, bar, or custom series
+with a shared camera. Charts support orbit, pan, zoom, picking, color legends,
+hover highlights, fixed axis and color ranges, plot proportions, and in-chart
+axis labels with optional back-plane grids.
+Rendering uses go-gpuimage v0.1.0, with software and wireframe fallbacks.
+ntcharts handles terminal images and glyph output.
+
+This project is unreleased. See the [API guide](API.md),
+[gallery instructions](examples/gallery/README.md),
+[transport diagnostic](examples/transport/README.md), and [demo site](web/README.md).
+
+## Run locally
+
+```sh
+go test -race ./...
+cd examples/gallery
+go run .
+# Shared memory requires a compatible local terminal:
+go run . -medium shm
+```
+
+The gallery has scatter, surface, and bar tabs. Press `v` to switch legend modes,
+`g` to switch Kitty/glyph output, `o` to switch projection, and `b` for grid lines. Use PNG over SSH.
+See the gallery instructions for browser builds and all controls.
+
+## Development tasks
+
+Install [Task](https://taskfile.dev/docs/installation), then run tasks from the
+repository root. `task` builds the library and native examples into `bin/`.
+
+| Command | Purpose |
+| --- | --- |
+| `task list` | List all tasks |
+| `task ci` | Check formatting, modules, race tests, vet, and native/WASM builds |
+| `task test-gpu` | Run hardware GPU tests without the race detector |
+| `task gallery -- -render-mode software` | Run the gallery with flags |
+| `task transport -- -medium shm` | Run the transport diagnostic with flags |
+| `task go-tidy` | Update module files in all three modules |
+| `task build-web` | Compile both WASM examples and generate browser assets |
+| `task serve-gallery` / `task serve-transport` | Serve generated browser examples |
+| `task clean` | Remove compiled outputs, keeping browser assets |
+
+Builds and CI check module files without updating them.
+After `task build-web`, apply the ghostty-web overlay described in each example
+before testing shared memory. Asset generation replaces any previous overlay.
+
+GitHub Actions runs `task ci` on Linux and macOS for pushes and pull requests.
+Hardware GPU tests run separately with `task test-gpu`. WASM compilation does
+not verify browser rendering. Deployment is not configured; browser assets
+still need the local overlay.
+
+## Dependencies
+
+Requires Go 1.26. The library and both examples pin ntcharts to upstream
+commit [`4777228ed363`](https://github.com/NimbleMarkets/ntcharts/commit/4777228ed363ab15755715840089133a1a362c83),
+which includes the Kitty transport APIs. Go records this unreleased commit as
+`v2.3.1-0.20260927013859-4777228ed363`. No local ntcharts checkout is needed.
+
+The gallery's `ntcharts3d => ../..` replacement uses this repository directly.
+Both examples use a Bubble Tea WASM fork. Browser shared memory requires the
+local ghostty-web assets listed in their instructions.
+
+## Ownership
+
+- ntcharts3d: chart geometry, interactions, legends, and rendering.
+- go-gpuimage: GPU execution, textures, and readback.
+- ntcharts: terminal image transport and canvas.
+- go-booba and the browser terminal: WASM hosting and Kitty image display.
+
+Extracted from ntcharts `wgpu-shared-memory` at `2ed8872`.
+MIT license; existing copyright notices are preserved.

@@ -1,0 +1,182 @@
+# ntcharts3d - Copyright (c) 2026 Neomantra Corp.
+
+version: '3'
+
+vars:
+  MODULES: ['.', 'examples/gallery', 'examples/transport']
+
+tasks:
+  default:
+    desc: Build the library and native examples
+    cmds:
+      - task: build
+
+  list:
+    desc: List available tasks
+    cmds:
+      - task --list-all
+
+  go-tidy:
+    desc: Tidy all three modules
+    cmds:
+      - for: {var: MODULES}
+        cmd: go -C '{{.ITEM}}' mod tidy
+
+  go-tidy-check:
+    desc: Check module files without changing them
+    cmds:
+      - for: {var: MODULES}
+        cmd: go -C '{{.ITEM}}' mod tidy -diff
+
+  go-verify:
+    desc: Verify dependency checksums in all modules
+    cmds:
+      - for: {var: MODULES}
+        cmd: go -C '{{.ITEM}}' mod verify
+
+  fmt:
+    desc: Format Go source
+    cmds:
+      - gofmt -w *.go math3d/*.go examples/gallery/*.go examples/transport/*.go
+
+  fmt-check:
+    desc: Check Go formatting
+    cmds:
+      - |
+        unformatted_files=$(gofmt -l *.go math3d/*.go examples/gallery/*.go examples/transport/*.go)
+        if [ -n "$unformatted_files" ]; then
+          printf '%s\n' "$unformatted_files"
+          exit 1
+        fi
+
+  test:
+    desc: Run tests in all modules
+    cmds:
+      - for: {var: MODULES}
+        cmd: go -C '{{.ITEM}}' test -mod=readonly ./...
+
+  test-race:
+    desc: Run tests with the race detector, excluding GPU tests
+    cmds:
+      - for: {var: MODULES}
+        cmd: NTCHARTS3D_TRANSPORT_GPU_TEST=0 go -C '{{.ITEM}}' test -mod=readonly -race ./...
+
+  test-gpu:
+    desc: Run chart and transport GPU tests on hardware, without the race detector
+    cmds:
+      - go test -mod=readonly -tags webgpu . -run TestGPU -count=1 -v
+      - NTCHARTS3D_TRANSPORT_GPU_TEST=1 go -C examples/transport test -mod=readonly . -run TestSceneRendersOpaqueAnimatedFrames -count=1 -v
+
+  vet:
+    desc: Run go vet in all modules
+    cmds:
+      - for: {var: MODULES}
+        cmd: go -C '{{.ITEM}}' vet -mod=readonly ./...
+
+  ci:
+    desc: Run formatting, dependency, test, vet, and build checks
+    cmds:
+      - task: fmt-check
+      - task: go-tidy-check
+      - task: go-verify
+      - task: test-race
+      - task: vet
+      - task: build
+      - task: build-wasm
+
+  build:
+    desc: Build the library and native examples
+    deps: [build-lib, build-examples]
+
+  build-lib:
+    desc: Build the library
+    cmds:
+      - go build -mod=readonly ./...
+
+  build-examples:
+    desc: Build both native examples into bin/
+    deps: [build-ex-gallery, build-ex-transport]
+
+  build-ex-gallery:
+    desc: Build the native gallery
+    dir: examples/gallery
+    cmds:
+      - go build -mod=readonly -o ../../bin/ntcharts3d-gallery .
+
+  build-ex-transport:
+    desc: Build the native transport diagnostic
+    dir: examples/transport
+    cmds:
+      - go build -mod=readonly -o ../../bin/ntcharts3d-transport .
+
+  gallery:
+    desc: Run the gallery; pass flags after --
+    deps: [build-ex-gallery]
+    cmds:
+      - bin/ntcharts3d-gallery {{.CLI_ARGS}}
+
+  transport:
+    desc: Run the transport diagnostic; pass flags after --
+    deps: [build-ex-transport]
+    cmds:
+      - bin/ntcharts3d-transport {{.CLI_ARGS}}
+
+  build-wasm:
+    desc: Compile both examples to web/app.wasm in their directories
+    deps: [build-wasm-gallery, build-wasm-transport]
+
+  build-wasm-gallery:
+    desc: Compile the gallery for the browser
+    dir: examples/gallery
+    env:
+      GOOS: js
+      GOARCH: wasm
+      CGO_ENABLED: '0'
+    cmds:
+      - mkdir -p web
+      - go build -mod=readonly -o web/app.wasm .
+
+  build-wasm-transport:
+    desc: Compile the transport diagnostic for the browser
+    dir: examples/transport
+    env:
+      GOOS: js
+      GOARCH: wasm
+      CGO_ENABLED: '0'
+    cmds:
+      - mkdir -p web
+      - go build -mod=readonly -o web/app.wasm .
+
+  web-assets:
+    desc: Generate browser assets from the pinned go-booba version
+    cmds:
+      - go -C examples/gallery tool booba-assets web/
+      - go -C examples/transport tool booba-assets web/
+
+  build-web:
+    desc: Build both browser examples and generate their assets
+    cmds:
+      - task: build-wasm
+      - task: web-assets
+
+  serve-gallery:
+    desc: Serve the gallery at http://localhost:8766
+    preconditions:
+      - sh: test -f examples/gallery/web/app.wasm && test -f examples/gallery/web/index.html
+        msg: Run task build-web first.
+    cmds:
+      - python3 -m http.server 8766 --bind 127.0.0.1 -d examples/gallery/web
+
+  serve-transport:
+    desc: Serve the transport diagnostic at http://localhost:8765
+    preconditions:
+      - sh: test -f examples/transport/web/app.wasm && test -f examples/transport/web/index.html
+        msg: Run task build-web first.
+    cmds:
+      - python3 -m http.server 8765 --bind 127.0.0.1 -d examples/transport/web
+
+  clean:
+    desc: Remove compiled examples; keep browser assets
+    cmds:
+      - rm -f bin/ntcharts3d-gallery bin/ntcharts3d-transport
+      - rm -f examples/gallery/web/app.wasm examples/transport/web/app.wasm
