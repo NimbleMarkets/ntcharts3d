@@ -35,23 +35,26 @@ type Light struct {
 	Ambient   float32
 }
 
-// Frame is a read-only snapshot. Geometry changes only when Revision changes.
+// Frame is a read-only snapshot. Mesh data changes only when Revision changes; materials may also change
+// when TextureRevision changes.
 type Frame struct {
-	Width, Height int
-	Matrix        math3d.Mat4
-	Revision      uint64
-	Bounds        math3d.AABB  // Plot bounds after fixed axis ranges.
-	Axes          [3]AxisFrame // X, Y, Z; separate from cached series geometry.
-	Geometry      []Geometry   // Clipped geometry; mesh normals account for plot proportions.
-	GridLines     []Vertex     // Dynamic pairs of back-plane grid endpoints.
-	Emphasis      *EmphasisFrame
-	ColorLegends  []ColorLegend
-	Background    color.RGBA
-	Light         Light
+	Width, Height   int
+	Matrix          math3d.Mat4
+	Revision        uint64
+	TextureRevision uint64
+	Bounds          math3d.AABB  // Plot bounds after fixed axis ranges.
+	Axes            [3]AxisFrame // X, Y, Z; separate from cached series geometry.
+	Geometry        []Geometry   // Clipped geometry; mesh normals account for plot proportions.
+	GridLines       []Vertex     // Dynamic pairs of back-plane grid endpoints.
+	Emphasis        *EmphasisFrame
+	ColorLegends    []ColorLegend
+	Background      color.RGBA
+	Light           Light
 }
 
 // Renderer draws a Frame into a Go image. Implementations must serialize Render
-// and Close and reuse geometry while Frame.Revision is unchanged.
+// and Close and reuse mesh data while Frame.Revision is unchanged. Texture bindings
+// must also be refreshed when Frame.TextureRevision changes.
 type Renderer interface {
 	Render(Frame) (image.Image, error)
 	Close() error

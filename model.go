@@ -22,6 +22,7 @@ type Model struct {
 	plotAspect                        math3d.Vec3
 	prepared                          []Geometry
 	preparedRevision                  uint64
+	textureRevision                   uint64
 	grid                              Grid
 	emphasis                          Emphasis
 	transport                         string

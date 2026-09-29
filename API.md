@@ -206,6 +206,68 @@ accepts mouse input. `SetSize` includes two rows for the title and hover details
 Call `Close` after the program exits to release GPU resources
 and pending shared-memory images.
 
+## Textured terrain and flat maps
+
+`Surface.Material` and `Geometry.Material` apply to indexed triangles. A texture
+replaces vertex/palette colors. `Material.Unlit` bypasses lighting, preserving map
+colors and labels; otherwise the scene light shades the texture. Points, lines,
+and boxes retain their existing appearance.
+
+```go
+texture, err := ntcharts3d.NewTexture(mapImage)
+if err != nil {
+    return err
+}
+cmd := chart.SetSurface("terrain", ntcharts3d.Surface{
+    NX: nx, NY: ny, Z: elevations,
+    MinX: west, MaxX: east, MinY: south, MaxY: north,
+    Material: &ntcharts3d.Material{Texture: texture, Unlit: true},
+})
+// Execute cmd when updating a running Bubble Tea model.
+```
+
+Use zero elevations for a tilted flat map. Projection, tile fetching, imagery
+composition, and elevation sourcing belong to the caller.
+
+`UV{U, V}` uses normalized image coordinates with `(0,0)` at the top-left.
+Surface defaults place that corner at `(MinX, MaxY)` and `(1,1)` at
+`(MaxX, MinY)`. Rows still advance from MinY toward MaxY. Optional `Surface.UV`
+values override this mapping, one per grid vertex, for crops or atlases. Custom
+`Geometry` requires one finite UV per vertex when textured. Coordinates outside
+`[0,1]` clamp to the image edge. One material is supported per geometry.
+
+`NewTexture(image.Image)` copies pixels into immutable storage, accepts nonzero
+image bounds, and rejects empty images, dimensions above 8192, or any nonopaque
+pixel. Callers may mutate or reuse the original image afterward. Surface setters
+also copy UVs and materials. A zero-value `Texture` is invalid. Textures can be
+shared by multiple series and charts; each renderer owns and releases its GPU
+resources through `Close`, and discards images no longer used by its meshes.
+
+Both raster renderers use bilinear filtering with clamp-to-edge and
+perspective-correct UV interpolation. Plot clipping interpolates UVs. Channels
+are assumed sRGB-encoded, uploaded as RGBA8Unorm, and filtered/lit directly in
+encoded space; no linear-light conversion or color-profile processing occurs.
+This preserves unlit image colors. Alpha blending and mipmaps are not supported
+in this version. Highly tilted or minified images may alias. Wireframe displays
+geometry only.
+
+Textured surfaces do not contribute an elevation palette domain or legend by
+default. Set `Surface.ColorLegend: true` to opt in; custom series control this
+with `Geometry.HasColorRange`.
+
+```go
+// Replace imagery without resampling elevations, clipping, or mesh uploads.
+cmd = chart.SetSeriesTexture("terrain", nextTexture)
+```
+
+`SetSeriesTexture` requires an existing textured series and a valid nonnil
+texture. It preserves UVs and lighting settings, and the replacement survives
+palette/domain changes. Unknown names and invalid inputs leave the series intact
+and set `Err()`. Use `SetSurface` or `SetSeries` to attach/remove a material or
+change UVs. Image updates advance `Frame.TextureRevision`, independently of
+`Frame.Revision`. Orbiting uploads neither image pixels nor series geometry;
+unchanged shared images remain resident across geometry rebuilds.
+
 ## Rendering and scheduling
 
 GPU resources persist across frames. Data and palette changes increment the
@@ -226,18 +288,20 @@ of back-plane endpoints; `Frame.Emphasis` describes the optional hover highlight
 These decorations are separate from `Frame.Geometry` and can change without
 changing `Frame.Revision`.
 It must serialize `Render` and `Close` and reuse geometry while `Revision` is
-unchanged. The default renderer runs GPU work on go-gpuimage's executor. WASM
+unchanged. `Frame.TextureRevision` changes independently when imagery is replaced;
+renderers must refresh material bindings while retaining mesh buffers. `Texture`
+implements read-only `image.Image` for custom renderers. The default renderer runs GPU work on go-gpuimage's executor. WASM
 uploads and readback copy data across JavaScript calls.
 
 Presentation uses complete frames read back into Go memory. `Geometry.Lines`
-supports pairs of vertices; there is no line-width or texture API.
+supports pairs of vertices; there is no line-width API.
 
 ## Limits and fallback
 
 | Render mode | Limits |
 | --- | --- |
 | WebGPU | 500,000 scatter points total; `WithMaxPoints` can lower this. Surface dimensions 2–512; bar grids up to 512×512. Framebuffer area capped at 4096×2160 pixels. |
-| Software | 320×200 pixels; up to 10,000 sampled points and 20,000 sampled triangles per series; first 2,000 bars per series. |
+| Software | 320×200 pixels; up to 10,000 sampled points and 20,000 sampled untextured triangles per series (textured meshes retain all triangles); first 2,000 bars per series. |
 | Wireframe | Canvas runes; up to 2,000 sampled points and 2,000 sampled triangles per series; first 500 bars per series. |
 
 GPU initialization or rendering failure switches to software. A CPU adapter

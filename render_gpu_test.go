@@ -201,3 +201,89 @@ func TestGPUGridAndHoverKeepGeometry(t *testing.T) {
 		t.Fatal("grid or hover reuploaded series")
 	}
 }
+
+func TestGPUTexturesAndIndependentUpdates(t *testing.T) {
+	r := &gpuRenderer{}
+	defer r.Close()
+	f := textureTestFrame(t)
+	gpu, err := r.Render(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cpu := softwareRender(f)
+	for _, p := range []image.Point{{10, 10}, {90, 10}, {10, 90}, {90, 90}, {40, 60}, {55, 45}} {
+		a, b := color.RGBAModel.Convert(gpu.At(p.X, p.Y)).(color.RGBA), color.RGBAModel.Convert(cpu.At(p.X, p.Y)).(color.RGBA)
+		if abs(float32(a.R)-float32(b.R)) > 2 || abs(float32(a.G)-float32(b.G)) > 2 || abs(float32(a.B)-float32(b.B)) > 2 {
+			t.Fatal("GPU/software texture mismatch", p, a, b)
+		}
+	}
+	if r.textureUploads != 1 || r.uploads != 1 {
+		t.Fatal("initial upload counts", r.textureUploads, r.uploads)
+	}
+	// Perspective interpolation remains consistent between both renderers.
+	f.Matrix[3] = .5
+	gpu, err = r.Render(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cpu = softwareRender(f)
+	a, b := color.RGBAModel.Convert(gpu.At(55, 45)).(color.RGBA), cpu.At(55, 45).(color.RGBA)
+	if abs(float32(a.R)-float32(b.R)) > 2 || abs(float32(a.G)-float32(b.G)) > 2 || abs(float32(a.B)-float32(b.B)) > 2 {
+		t.Fatal("GPU/software perspective mismatch", a, b)
+	}
+	if r.textureUploads != 1 || r.uploads != 1 {
+		t.Fatal("camera uploaded data")
+	}
+	replacement := image.NewRGBA(image.Rect(0, 0, 3, 1))
+	for x := range 3 {
+		replacement.SetRGBA(x, 0, color.RGBA{123, 45, 67, 255})
+	}
+	next, err := NewTexture(replacement)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Geometry[0].Material = &Material{Texture: next, Unlit: true}
+	f.TextureRevision++
+	gpu, err = r.Render(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := color.RGBAModel.Convert(gpu.At(55, 45)).(color.RGBA); got != (color.RGBA{123, 45, 67, 255}) {
+		t.Fatal("replacement image", got)
+	}
+	if r.textureUploads != 2 || r.uploads != 1 || len(r.textures) != 1 {
+		t.Fatal("texture replacement uploaded geometry or leaked texture")
+	}
+	// Geometry rebuilds keep an unchanged texture resident.
+	f.Revision++
+	if _, err = r.Render(f); err != nil {
+		t.Fatal(err)
+	}
+	if r.textureUploads != 2 || r.uploads != 2 {
+		t.Fatal("geometry rebuild uploaded image")
+	}
+	// Shared images upload only once, and lit materials match the CPU path.
+	f.Geometry[0].Material = &Material{Texture: next}
+	f.Geometry = append(f.Geometry, f.Geometry[0])
+	f.Revision++
+	gpu, err = r.Render(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cpu = softwareRender(f)
+	a, b = color.RGBAModel.Convert(gpu.At(55, 45)).(color.RGBA), cpu.At(55, 45).(color.RGBA)
+	if abs(float32(a.R)-float32(b.R)) > 1 || abs(float32(a.G)-float32(b.G)) > 1 || abs(float32(a.B)-float32(b.B)) > 1 {
+		t.Fatal("lit GPU/software mismatch", a, b)
+	}
+	if r.textureUploads != 2 || len(r.textures) != 1 || len(r.texturedBatches) != 2 {
+		t.Fatal("shared texture uploaded twice")
+	}
+	f.Geometry = nil
+	f.Revision++
+	if _, err = r.Render(f); err != nil {
+		t.Fatal(err)
+	}
+	if len(r.textures) != 0 || len(r.texturedBatches) != 0 {
+		t.Fatal("removed textures not released")
+	}
+}

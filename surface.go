@@ -15,6 +15,9 @@ import (
 // when geometry is compiled; an update may sample the grid more than once.
 // Equal bounds on either horizontal axis default to [-1,1].
 type Surface struct {
+	Material               *Material
+	UV                     []UV // Optional; defaults to north-up XY mapping.
+	ColorLegend            bool // Include elevation in palette domains and legends even when textured.
 	NX, NY                 int
 	Z                      []float32
 	Sampler                func(float64, float64) float64
@@ -24,6 +27,8 @@ type Surface struct {
 
 func (m *Model) SetSurface(name string, d Surface) tea.Cmd {
 	d.Z = slices.Clone(d.Z)
+	d.UV = slices.Clone(d.UV)
+	d.Material = cloneMaterial(d.Material)
 	return m.SetSeries(surfaceSeries{name, d})
 }
 
@@ -60,7 +65,18 @@ func (s surfaceSeries) geometry(cs Palette, domain *[2]float32) (Geometry, error
 	if !math3d.IsFinite(d.MinX) || !math3d.IsFinite(d.MaxX) || !math3d.IsFinite(d.MinY) || !math3d.IsFinite(d.MaxY) || d.MaxX <= d.MinX || d.MaxY <= d.MinY {
 		return Geometry{}, fmt.Errorf("ntcharts3d: invalid surface bounds")
 	}
-	g := Geometry{Vertices: make([]Vertex, n)}
+	g := Geometry{Vertices: make([]Vertex, n), Material: cloneMaterial(d.Material), UV: slices.Clone(d.UV)}
+	if textured(g) && len(g.UV) == 0 {
+		g.UV = make([]UV, n)
+		for y := range d.NY {
+			for x := range d.NX {
+				g.UV[y*d.NX+x] = UV{float32(x) / float32(d.NX-1), 1 - float32(y)/float32(d.NY-1)}
+			}
+		}
+	}
+	if err := validateGeometry(g); err != nil {
+		return Geometry{}, err
+	}
 	zs := make([]float32, n)
 	for y := range d.NY {
 		for x := range d.NX {
@@ -100,7 +116,7 @@ func (s surfaceSeries) geometry(cs Palette, domain *[2]float32) (Geometry, error
 	if domain != nil {
 		lo, hi = domain[0], domain[1]
 	}
-	g.ColorMin, g.ColorMax, g.HasColorRange = lo, hi, true
+	g.ColorMin, g.ColorMax, g.HasColorRange = lo, hi, !textured(g) || d.ColorLegend
 	for i := range g.Vertices {
 		g.Vertices[i].Normal = g.Vertices[i].Normal.Normalize()
 		g.Vertices[i].Color = mapped(cs, zs[i], lo, hi)

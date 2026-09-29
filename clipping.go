@@ -63,8 +63,22 @@ func clipLine(a, b Vertex, bounds math3d.AABB) (Vertex, Vertex, bool) {
 	}
 	return a, b, true
 }
+
+type meshVertex struct {
+	Vertex
+	UV
+}
+
 func clipTriangle(a, b, c Vertex, bounds math3d.AABB) []Vertex {
-	polygon := []Vertex{a, b, c}
+	p := clipTriangleUV(meshVertex{Vertex: a}, meshVertex{Vertex: b}, meshVertex{Vertex: c}, bounds)
+	out := make([]Vertex, len(p))
+	for i, v := range p {
+		out[i] = v.Vertex
+	}
+	return out
+}
+func clipTriangleUV(a, b, c meshVertex, bounds math3d.AABB) []meshVertex {
+	polygon := []meshVertex{a, b, c}
 	lo, hi := components(bounds.Min), components(bounds.Max)
 	for axis := range 3 {
 		for side := range 2 {
@@ -75,19 +89,20 @@ func clipTriangle(a, b, c Vertex, bounds math3d.AABB) []Vertex {
 			if side == 1 {
 				bound = hi[axis]
 			}
-			inside := func(v Vertex) bool {
+			inside := func(v meshVertex) bool {
 				x := components(v.Position)[axis]
 				if side == 0 {
 					return x >= bound
 				}
 				return x <= bound
 			}
-			out := make([]Vertex, 0, len(polygon)+1)
+			out := make([]meshVertex, 0, len(polygon)+1)
 			previous := polygon[len(polygon)-1]
 			for _, current := range polygon {
 				if inside(previous) != inside(current) {
 					x, y := components(previous.Position)[axis], components(current.Position)[axis]
-					v := interpolateVertex(previous, current, (float64(bound)-float64(x))/(float64(y)-float64(x)))
+					t := (float64(bound) - float64(x)) / (float64(y) - float64(x))
+					v := meshVertex{Vertex: interpolateVertex(previous.Vertex, current.Vertex, t), UV: UV{float32(float64(previous.U)*(1-t) + float64(current.U)*t), float32(float64(previous.V)*(1-t) + float64(current.V)*t)}}
 					p := components(v.Position)
 					p[axis] = bound
 					v.Position = vector(p)
@@ -108,6 +123,7 @@ func clipGeometry(g Geometry, b math3d.AABB) Geometry {
 		return g
 	}
 	out := g
+	out.UV = nil
 	out.Points, out.Vertices, out.Indices, out.Boxes, out.Lines = nil, nil, nil, nil, nil
 	for _, p := range g.Points {
 		if contains(b, p.Position) {
@@ -115,9 +131,21 @@ func clipGeometry(g Geometry, b math3d.AABB) Geometry {
 		}
 	}
 	for i := 0; i+2 < len(g.Indices); i += 3 {
-		polygon := clipTriangle(g.Vertices[g.Indices[i]], g.Vertices[g.Indices[i+1]], g.Vertices[g.Indices[i+2]], b)
+		at := func(index uint32) meshVertex {
+			v := meshVertex{Vertex: g.Vertices[index]}
+			if len(g.UV) > 0 {
+				v.UV = g.UV[index]
+			}
+			return v
+		}
+		polygon := clipTriangleUV(at(g.Indices[i]), at(g.Indices[i+1]), at(g.Indices[i+2]), b)
 		base := uint32(len(out.Vertices))
-		out.Vertices = append(out.Vertices, polygon...)
+		for _, v := range polygon {
+			out.Vertices = append(out.Vertices, v.Vertex)
+			if len(g.UV) > 0 {
+				out.UV = append(out.UV, v.UV)
+			}
+		}
 		for j := 1; j+1 < len(polygon); j++ {
 			out.Indices = append(out.Indices, base, base+uint32(j), base+uint32(j+1))
 		}

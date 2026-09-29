@@ -50,7 +50,12 @@ func softwareRender(f Frame) image.Image {
 			put(int(x+(xx-x)*t), int(y+(yy-y)*t), z+(zz-z)*t, a.Color)
 		}
 	}
-	tri := func(a, b, c Vertex) {
+	tri := func(a, b, c Vertex, uv [3]UV, material *Material) {
+		if material != nil && material.Unlit {
+			a.Normal = math3d.Vec3{}
+			b.Normal = math3d.Vec3{}
+			c.Normal = math3d.Vec3{}
+		}
 		x0, y0, z0, _ := f.Matrix.Project(a.Position, f.Width, f.Height)
 		x1, y1, z1, _ := f.Matrix.Project(b.Position, f.Width, f.Height)
 		x2, y2, z2, _ := f.Matrix.Project(c.Position, f.Width, f.Height)
@@ -66,6 +71,11 @@ func softwareRender(f Frame) image.Image {
 		} // CCW faces become clockwise with screen Y down
 		loX, hiX := max(0, int(math.Floor(float64(min(x0, x1, x2))))), min(f.Width-1, int(math.Ceil(float64(max(x0, x1, x2)))))
 		loY, hiY := max(0, int(math.Floor(float64(min(y0, y1, y2))))), min(f.Height-1, int(math.Ceil(float64(max(y0, y1, y2)))))
+		if material != nil && material.Texture != nil {
+			a.Color = color.RGBA{255, 255, 255, 255}
+			b.Color = a.Color
+			c.Color = a.Color
+		}
 		ca, cb, cc := shade(a.Color, a.Normal, f.Light), shade(b.Color, b.Normal, f.Light), shade(c.Color, c.Normal, f.Light)
 		for y := loY; y <= hiY; y++ {
 			for x := loX; x <= hiX; x++ {
@@ -77,7 +87,18 @@ func softwareRender(f Frame) image.Image {
 					continue
 				}
 				mix := func(a, b, c uint8) uint8 { return uint8(max(0, min(255, u*float32(a)+v*float32(b)+t*float32(c)))) }
-				put(x, y, u*z0+v*z1+t*z2, color.RGBA{mix(ca.R, cb.R, cc.R), mix(ca.G, cb.G, cc.G), mix(ca.B, cb.B, cc.B), 255})
+				pixel := color.RGBA{mix(ca.R, cb.R, cc.R), mix(ca.G, cb.G, cc.G), mix(ca.B, cb.B, cc.B), 255}
+				if material != nil && material.Texture != nil {
+					q0, q1, q2 := u/w0, v/w1, t/w2
+					sum := q0 + q1 + q2
+					q0 /= sum
+					q1 /= sum
+					q2 /= sum
+					tex := material.Texture.sample(UV{q0*uv[0].U + q1*uv[1].U + q2*uv[2].U, q0*uv[0].V + q1*uv[1].V + q2*uv[2].V})
+					light := (q0*float32(ca.R) + q1*float32(cb.R) + q2*float32(cc.R)) / 255
+					pixel = color.RGBA{uint8(float32(tex.R)*light + .5), uint8(float32(tex.G)*light + .5), uint8(float32(tex.B)*light + .5), 255}
+				}
+				put(x, y, u*z0+v*z1+t*z2, pixel)
 			}
 		}
 	}
@@ -102,8 +123,17 @@ func softwareRender(f Frame) image.Image {
 			}
 		}
 		stride := 3 * max(1, (len(g.Indices)/3+19999)/20000)
+		if textured(g) {
+			stride = 3
+		}
 		for i := 0; i+2 < len(g.Indices); i += stride {
-			tri(g.Vertices[g.Indices[i]], g.Vertices[g.Indices[i+1]], g.Vertices[g.Indices[i+2]])
+			var uv [3]UV
+			if len(g.UV) > 0 {
+				for j := range 3 {
+					uv[j] = g.UV[g.Indices[i+j]]
+				}
+			}
+			tri(g.Vertices[g.Indices[i]], g.Vertices[g.Indices[i+1]], g.Vertices[g.Indices[i+2]], uv, g.Material)
 		}
 		for i, b := range g.Boxes {
 			if i >= 2000 {
@@ -111,7 +141,7 @@ func softwareRender(f Frame) image.Image {
 			}
 			v := boxVertices(b)
 			for j := 0; j < len(v); j += 3 {
-				tri(v[j], v[j+1], v[j+2])
+				tri(v[j], v[j+1], v[j+2], [3]UV{}, nil)
 			}
 		}
 		for i := 0; i+1 < len(g.Lines); i += 2 {

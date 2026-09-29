@@ -92,7 +92,7 @@ func (m *Model) frame() Frame {
 			}
 		}
 	}
-	f := Frame{Width: w, Height: h, Matrix: m.camera.Matrix(float32(plotCols*cw) / float32(plotRows*ch)).Mul(n), Revision: m.revision, Bounds: b, Axes: m.axisFrames(b), Geometry: geoms, ColorLegends: legends, Background: m.background, Light: m.light}
+	f := Frame{Width: w, Height: h, Matrix: m.camera.Matrix(float32(plotCols*cw) / float32(plotRows*ch)).Mul(n), Revision: m.revision, TextureRevision: m.textureRevision, Bounds: b, Axes: m.axisFrames(b), Geometry: geoms, ColorLegends: legends, Background: m.background, Light: m.light}
 	f.GridLines = m.gridLines(f)
 	f.Emphasis = m.emphasisFrame(f)
 	return f

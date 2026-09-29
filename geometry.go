@@ -30,6 +30,8 @@ type Box struct {
 // Geometry contains points, indexed triangles, boxes, and line pairs.
 // Custom Series must not mutate geometry after returning it to the model.
 type Geometry struct {
+	UV            []UV      // One per vertex when textured.
+	Material      *Material // Applies to indexed triangles only.
 	Points        []Point
 	Vertices      []Vertex
 	Indices       []uint32
@@ -43,6 +45,18 @@ type Geometry struct {
 }
 
 func validateGeometry(g Geometry) error {
+	if len(g.UV) != 0 && len(g.UV) != len(g.Vertices) {
+		return fmt.Errorf("ntcharts3d: UV length mismatch")
+	}
+	if textured(g) && (!g.Material.Texture.valid() || len(g.UV) != len(g.Vertices)) {
+		return fmt.Errorf("ntcharts3d: invalid texture or missing UVs")
+	}
+	for _, uv := range g.UV {
+		if !validFloat(uv.U, uv.V) {
+			return fmt.Errorf("ntcharts3d: non-finite UV")
+		}
+	}
+
 	if g.HasColorRange && (!validFloat(g.ColorMin, g.ColorMax) || g.ColorMax < g.ColorMin) {
 		return fmt.Errorf("ntcharts3d: invalid color range")
 	}

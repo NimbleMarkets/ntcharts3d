@@ -26,17 +26,24 @@ type gpuBatch struct {
 }
 
 type gpuRenderer struct {
-	mu         sync.Mutex
-	closed     bool
-	r          *gpuimage.Renderer
-	shader     *wgpu.ShaderModule
-	bindLayout *wgpu.BindGroupLayout
-	layout     *wgpu.PipelineLayout
-	uniform    *wgpu.Buffer
-	pipelines  [6]*wgpu.RenderPipeline
-	batches    [6]gpuBatch // scatter, triangles, boxes, lines, screen overlay, grid
-	revision   uint64
-	uploads    uint64
+	textureBindLayout               *wgpu.BindGroupLayout
+	textureLayout                   *wgpu.PipelineLayout
+	texturePipeline                 *wgpu.RenderPipeline
+	textureSampler                  *wgpu.Sampler
+	textures                        map[*Texture]*gpuTexture
+	texturedBatches                 []texturedBatch
+	textureRevision, textureUploads uint64
+	mu                              sync.Mutex
+	closed                          bool
+	r                               *gpuimage.Renderer
+	shader                          *wgpu.ShaderModule
+	bindLayout                      *wgpu.BindGroupLayout
+	layout                          *wgpu.PipelineLayout
+	uniform                         *wgpu.Buffer
+	pipelines                       [6]*wgpu.RenderPipeline
+	batches                         [6]gpuBatch // scatter, triangles, boxes, lines, screen overlay, grid
+	revision                        uint64
+	uploads                         uint64
 }
 
 func (g *gpuRenderer) setup() (err error) {
@@ -79,7 +86,10 @@ func (g *gpuRenderer) setup() (err error) {
 			}
 		}
 		g.uniform, err = dev.CreateBuffer(&wgpu.BufferDescriptor{Size: 112, Usage: wgpu.BufferUsageUniform | wgpu.BufferUsageCopyDst})
-		return err
+		if err != nil {
+			return err
+		}
+		return g.setupTextures(dev)
 	})
 }
 
@@ -101,7 +111,15 @@ func (g *gpuRenderer) upload(dev *wgpu.Device, f Frame) error {
 			vertex(0, Vertex{Position: p.Position, Color: p.Color}, p.Radius)
 		}
 		for _, i := range geom.Indices {
-			vertex(1, geom.Vertices[i], 1)
+			if !textured(geom) {
+				v := geom.Vertices[i]
+				if geom.Material != nil && geom.Material.Unlit {
+					v.Normal.X = 0
+					v.Normal.Y = 0
+					v.Normal.Z = 0
+				}
+				vertex(1, v, 1)
+			}
 		}
 		for _, b := range geom.Boxes {
 			vertex(2, Vertex{b.Min, b.Size, b.Color}, 1)
@@ -135,6 +153,12 @@ func (g *gpuRenderer) upload(dev *wgpu.Device, f Frame) error {
 			return err
 		}
 		old.count = uint32(len(d) / 48)
+	}
+	if err := g.uploadTexturedMeshes(dev, f); err != nil {
+		return err
+	}
+	if err := g.syncTextures(dev, f); err != nil {
+		return err
 	}
 	g.revision = f.Revision
 	g.uploads++
@@ -218,6 +242,11 @@ func (g *gpuRenderer) Render(f Frame) (image.Image, error) {
 				return err
 			}
 		}
+		if g.textureRevision != f.TextureRevision {
+			if err := g.syncTextures(dev, f); err != nil {
+				return err
+			}
+		}
 		if err := g.uploadGrid(dev, f); err != nil {
 			return err
 		}
@@ -232,6 +261,14 @@ func (g *gpuRenderer) Render(f Frame) (image.Image, error) {
 			return err
 		}
 		for _, i := range []int{5, 0, 1, 2, 3, 4} {
+			if i == 2 {
+				for _, b := range g.texturedBatches {
+					pass.SetPipeline(g.texturePipeline)
+					pass.SetBindGroup(0, b.bind, nil)
+					pass.SetBindGroup(1, g.textures[b.texture].bind, nil)
+					pass.Draw(gputypes.DrawArgs{VertexCount: b.count, InstanceCount: 1})
+				}
+			}
 			b := g.batches[i]
 			if b.count == 0 {
 				continue
@@ -263,6 +300,24 @@ func (g *gpuRenderer) Close() error {
 		return nil
 	}
 	_ = g.r.Do(func(*wgpu.Device) error {
+		for _, b := range g.texturedBatches {
+			releaseBatch(b.gpuBatch)
+		}
+		for _, t := range g.textures {
+			t.release()
+		}
+		if g.texturePipeline != nil {
+			g.texturePipeline.Release()
+		}
+		if g.textureSampler != nil {
+			g.textureSampler.Release()
+		}
+		if g.textureLayout != nil {
+			g.textureLayout.Release()
+		}
+		if g.textureBindLayout != nil {
+			g.textureBindLayout.Release()
+		}
 		for _, b := range g.batches {
 			if b.bind != nil {
 				b.bind.Release()

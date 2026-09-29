@@ -35,3 +35,12 @@ var corners=array<vec3<f32>,36>(vec3<f32>(0.0,0.0,0.0),vec3<f32>(0.0,1.0,0.0),ve
 var normals=array<vec3<f32>,6>(vec3<f32>(0.0,0.0,-1.0),vec3<f32>(0.0,0.0,1.0),vec3<f32>(0.0,-1.0,0.0),vec3<f32>(0.0,1.0,0.0),vec3<f32>(-1.0,0.0,0.0),vec3<f32>(1.0,0.0,0.0));
 let p=items[ii];return output(p.a.xyz+corners[vi]*p.b.xyz,normals[vi/6u],p.color);}
 @fragment fn fs_main(o:Out)->@location(0) vec4<f32> {if o.point>0.0 && dot(o.uv,o.uv)>1.0 {discard;} return o.color;}
+
+@group(1) @binding(0) var mapTexture: texture_2d<f32>;
+@group(1) @binding(1) var mapSampler: sampler;
+@vertex fn vs_texture(@builtin(vertex_index) vi:u32)->Out {
+ let p=items[vi];var o=output(p.a.xyz,p.b.xyz,p.color);o.uv=vec2<f32>(p.a.w,p.b.w);return o;
+}
+@fragment fn fs_texture(o:Out)->@location(0) vec4<f32> {
+ return vec4<f32>(textureSample(mapTexture,mapSampler,o.uv).rgb*o.color.rgb,1.0);
+}
