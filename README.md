@@ -27,7 +27,9 @@ go run .
 go run . -medium shm
 ```
 
-The gallery has scatter, surface, and bar tabs. Press `v` to switch legend modes,
+The gallery has scatter, surface, bar, and textured map tabs.
+Run `go -C examples/gallery run . -tab 4 -rotate=false` from the root to try the
+map: `t` swaps imagery, `f` toggles flat/terrain, and `l` toggles lighting. Press `v` to switch legend modes,
 `g` to switch Kitty/glyph output, `o` to switch projection, and `b` for grid lines. Use PNG over SSH.
 See the gallery instructions for browser builds and all controls.
 
