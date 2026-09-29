@@ -287,3 +287,62 @@ func TestGPUTexturesAndIndependentUpdates(t *testing.T) {
 		t.Fatal("removed textures not released")
 	}
 }
+
+func TestGPUWideLinesAndArrowInstances(t *testing.T) {
+	r := &gpuRenderer{}
+	defer r.Close()
+	f := strokeTestFrame()
+	compare := func() {
+		t.Helper()
+		gpu, err := r.Render(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cpu := softwareRender(f)
+		mismatch := 0
+		for y := range f.Height {
+			for x := range f.Width {
+				a, b := color.RGBAModel.Convert(gpu.At(x, y)).(color.RGBA), cpu.At(x, y).(color.RGBA)
+				if abs(float32(a.R)-float32(b.R)) > 2 || abs(float32(a.G)-float32(b.G)) > 2 || abs(float32(a.B)-float32(b.B)) > 2 {
+					mismatch++
+				}
+			}
+		}
+		if mismatch > 60 {
+			t.Fatalf("GPU/software strokes differ at %d pixels", mismatch)
+		}
+	}
+	// Compare the strokes separately from legacy point rasterization.
+	f.Geometry[0].Points = nil
+	compare()
+	if r.batches[6].count != 1 || r.batches[6].buffer == nil {
+		t.Fatal("missing arrow instance batch")
+	}
+	original := r.batches[6].buffer
+	// Camera and viewport changes must preserve the instance buffer.
+	f.Matrix[3] = .5
+	compare()
+	f.Width, f.Height = 240, 180
+	compare()
+	if r.uploads != 1 || r.batches[6].buffer != original {
+		t.Fatal("camera/resize reuploaded arrow instances")
+	}
+	// Both depth clipping directions and a view-aligned arrow stay well-defined.
+	ink := color.RGBA{20, 160, 100, 255}
+	f.Matrix = math3d.Identity()
+	f.Revision++
+	f.Geometry = []Geometry{{Arrows: []Arrow{
+		{Start: math3d.Vec3{X: -.8, Y: .5, Z: -.5}, End: math3d.Vec3{X: .8, Y: .5, Z: .5}, Width: 4, HeadSize: 20, Color: ink},
+		{Start: math3d.Vec3{X: -.8, Y: -.5, Z: .5}, End: math3d.Vec3{X: .8, Y: -.5, Z: 1.5}, Width: 4, HeadSize: 20, Color: ink},
+		{Start: math3d.Vec3{Z: .2}, End: math3d.Vec3{Z: .8}, Width: 4, HeadSize: 20, Color: ink},
+	}}}
+	compare()
+	f.Geometry = nil
+	f.Revision++
+	if _, err := r.Render(f); err != nil {
+		t.Fatal(err)
+	}
+	if r.batches[6].buffer != nil || r.batches[6].count != 0 {
+		t.Fatal("removed arrows retained GPU resources")
+	}
+}

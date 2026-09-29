@@ -21,7 +21,8 @@ type PickMsg struct {
 
 // Pick finds a datum at cell coordinates relative to the plot, or returns nil.
 // Points use projected radii with a minimum tolerance based on cell size.
-// Above MaxPickPoints total points, only bars and surface vertices are tested.
+// Above MaxPickPoints total points, line segments, and arrows, only bars and
+// surface vertices are tested. Lines and arrows use their projected strokes.
 // Bars use ray/box intersections; surfaces use nearby grid vertices.
 func (m *Model) Pick(x, y int) *PickMsg {
 	plotCols := m.plotWidth()
@@ -32,7 +33,7 @@ func (m *Model) Pick(x, y int) *PickMsg {
 	px, py := (float32(x)+.5)*float32(f.Width)/float32(plotCols), (float32(y)+.5)*float32(f.Height)/float32(m.plotHeight())
 	count := 0
 	for _, s := range m.series {
-		count += len(s.geometry.Points)
+		count += len(s.geometry.Points) + len(s.geometry.Arrows) + len(s.geometry.Lines)/2
 	}
 	best := float32(math.Inf(1))
 	var hit *PickMsg
@@ -58,6 +59,30 @@ func (m *Model) Pick(x, y int) *PickMsg {
 			set(si, idx, p, depth)
 		}
 	}
+	testStroke := func(si, datum int, a, b math3d.Vec3, width, head float32) {
+		projected, ok := projectStroke(f, a, b)
+		if !ok {
+			return
+		}
+		rx, ry := px-projected.a.x, py-projected.a.y
+		along := rx*projected.dx + ry*projected.dy
+		side := abs(-rx*projected.dy + ry*projected.dx)
+		tolerance := max(lineWidth(width)*.5, float32(f.Width)/float32(plotCols)*.6)
+		hl, hw := projected.head(head, lineWidth(width))
+		if hl > 0 && along > projected.length-hl && along <= projected.length {
+			tolerance = max(tolerance, hw*(projected.length-along)/hl)
+		}
+		if along < -tolerance || along > projected.length+tolerance || side > tolerance {
+			return
+		}
+		t := float32(0)
+		if projected.length > 1e-5 {
+			t = max(0, min(1, along/projected.length))
+		}
+		param := projected.worldT(t)
+		p := a.Scale(1 - param).Add(b.Scale(param))
+		set(si, datum, p, projected.a.z*(1-t)+projected.b.z*t)
+	}
 	cw, ch := m.pic.CellPixelSize()
 	r := m.camera.RayFromCell(x, y, plotCols, m.plotHeight(), cw, ch)
 	r = m.plotTransform().inverseRay(r)
@@ -66,6 +91,29 @@ func (m *Model) Pick(x, y int) *PickMsg {
 		if count <= MaxPickPoints {
 			for _, p := range g.Points {
 				test(si, p.Datum, p.Position, p.Radius)
+			}
+		}
+		if count <= MaxPickPoints {
+			for i := 0; i+1 < len(g.Lines); i += 2 {
+				a, b := g.Lines[i], g.Lines[i+1]
+				if m.clipsPlot() {
+					var ok bool
+					a, b, ok = clipLine(a, b, f.Bounds)
+					if !ok {
+						continue
+					}
+				}
+				testStroke(si, i/2, a.Position, b.Position, g.LineWidth, 0)
+			}
+			for _, a := range g.Arrows {
+				if m.clipsPlot() {
+					var ok bool
+					a, ok = clipArrow(a, f.Bounds)
+					if !ok {
+						continue
+					}
+				}
+				testStroke(si, a.Datum, a.Start, a.End, a.Width, a.HeadSize)
 			}
 		}
 		for i, v := range g.Vertices {

@@ -27,10 +27,12 @@ go run .
 go run . -medium shm
 ```
 
-The gallery has scatter, surface, bar, and textured map tabs.
+The gallery has scatter, surface, bar, textured map, and vector-field tabs.
 Run `go -C examples/gallery run . -tab 4 -rotate=false` from the root to try the
 map: `t` swaps imagery, `f` toggles flat/terrain, and `l` toggles lighting. Press `v` to switch legend modes,
 `g` to switch Kitty/glyph output, `o` to switch projection, and `b` for grid lines. Use PNG over SSH.
+Run with `-tab 5 -rotate=false` for swirling arrows and streamlines: `n` normalizes
+lengths, `s` toggles streamlines, and `w` changes stroke widths.
 See the gallery instructions for browser builds and all controls.
 
 ## Development tasks

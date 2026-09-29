@@ -27,7 +27,7 @@ type Box struct {
 	Datum     int
 }
 
-// Geometry contains points, indexed triangles, boxes, and line pairs.
+// Geometry contains points, indexed triangles, boxes, line pairs, and arrow instances.
 // Custom Series must not mutate geometry after returning it to the model.
 type Geometry struct {
 	UV            []UV      // One per vertex when textured.
@@ -37,6 +37,8 @@ type Geometry struct {
 	Indices       []uint32
 	Boxes         []Box
 	Lines         []Vertex
+	LineWidth     float32 // Render pixels for Lines; zero defaults to 1.
+	Arrows        []Arrow
 	Labels        []string
 	Bounds        math3d.AABB
 	ColorMin      float32
@@ -45,6 +47,18 @@ type Geometry struct {
 }
 
 func validateGeometry(g Geometry) error {
+	if !validWidth(g.LineWidth) {
+		return fmt.Errorf("ntcharts3d: invalid line width")
+	}
+	if len(g.Arrows) > MaxVectors {
+		return fmt.Errorf("ntcharts3d: arrow count exceeds cap")
+	}
+	for _, a := range g.Arrows {
+		if !finiteVec(a.Start) || !finiteVec(a.End) || !validWidth(a.Width) || !validFloat(a.HeadSize) || a.HeadSize < 0 || a.HeadSize > 64 {
+			return fmt.Errorf("ntcharts3d: invalid arrow")
+		}
+	}
+
 	if len(g.UV) != 0 && len(g.UV) != len(g.Vertices) {
 		return fmt.Errorf("ntcharts3d: UV length mismatch")
 	}

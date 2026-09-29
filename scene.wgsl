@@ -14,21 +14,67 @@ fn output(pos: vec3<f32>, normal: vec3<f32>, color: vec4<f32>) -> Out {
  o.clip=vec4<f32>(o.clip.xy+corner*p.a.w*2.0/u.viewport.xy*o.clip.w,o.clip.zw);o.uv=corner;o.point=1.0;return o;
 }
 @vertex fn vs_mesh(@builtin(vertex_index) vi:u32)->Out {let p=items[vi];return output(p.a.xyz,p.b.xyz,p.color);}
-fn lineOutput(vi:u32,ii:u32,bias:f32)->Out {
- let a=items[ii*2u];let b=items[ii*2u+1u];
- let ca=u.matrix*vec4<f32>(a.a.xyz,1.0);let cb=u.matrix*vec4<f32>(b.a.xyz,1.0);
- let delta=(cb.xy/cb.w-ca.xy/ca.w)*u.viewport.xy;
- let length2=dot(delta,delta);
- var perpendicular=vec2<f32>(0.0,1.0);
- if length2>0.000001 { perpendicular=vec2<f32>(-delta.y,delta.x)*inverseSqrt(length2); }
+// Depth-clip the centerline before expanding it in pixel space.
+struct StrokeClip { a:vec4<f32>, b:vec4<f32>, t0:f32, t1:f32, visible:u32 };
+fn clipStroke(a:vec4<f32>,b:vec4<f32>)->StrokeClip {
+ var s=StrokeClip(a,b,0.0,1.0,1u);
+ for(var plane=0u;plane<3u;plane=plane+1u) {
+  var da=s.a.z;var db=s.b.z;
+  if plane==1u {da=s.a.w-s.a.z;db=s.b.w-s.b.z;}
+  if plane==2u {da=s.a.w-0.00001;db=s.b.w-0.00001;}
+  if da<0.0 && db<0.0 {s.visible=0u;return s;}
+  if (da<0.0)!=(db<0.0) {
+   let t=da/(da-db);let p=mix(s.a,s.b,t);let param=mix(s.t0,s.t1,t);
+   if da<0.0 {s.a=p;s.t0=param;}else{s.b=p;s.t1=param;}
+  }
+ }
+ return s;
+}
+fn strokeOutput(vi:u32,a:vec4<f32>,b:vec4<f32>,ca:vec4<f32>,cb:vec4<f32>,width:f32,head:f32,bias:f32)->Out {
+ let s=clipStroke(a,b);
+ var o:Out;o.uv=vec2<f32>(0.0);o.point=0.0;o.color=ca;
+ o.clip=vec4<f32>(0.0,0.0,2.0,1.0);
+ if s.visible==0u {return o;}
+ let pa=s.a.xy/s.a.w*u.viewport.xy*0.5;
+ let pb=s.b.xy/s.b.w*u.viewport.xy*0.5;
+ let delta=pb-pa;let length=length(delta);
  let atEnd=vi==2u || vi==4u || vi==5u;
  let side=select(-1.0,1.0,vi==1u || vi==2u || vi==4u);
- var o=output(select(a.a.xyz,b.a.xyz,atEnd),vec3<f32>(0.0),select(a.color,b.color,atEnd));
- o.clip=vec4<f32>(o.clip.xy+perpendicular*side/u.viewport.xy*o.clip.w,o.clip.z+bias*o.clip.w,o.clip.w);
+ var offset=vec2<f32>(0.0);var fraction=0.0;
+ if length<0.00001 {
+  if vi<6u {offset=vec2<f32>(select(-0.5,0.5,atEnd),side*0.5)*width;}
+ }else{
+  let direction=delta/length;let perpendicular=vec2<f32>(-direction.y,direction.x);
+  var hl=0.0;if s.t1>=1.0 {hl=min(head,length*0.45);}
+  if vi<6u {
+   fraction=select(0.0,1.0-hl/length,atEnd);
+   offset=perpendicular*side*width*0.5;
+  }else{
+   fraction=1.0-hl/length;
+   let hw=max(width*0.75,hl*0.5);
+   if vi==6u {offset=perpendicular*hw;}
+   if vi==7u {fraction=1.0;}
+   if vi==8u {offset=-perpendicular*hw;}
+   if hl==0.0 {fraction=1.0;offset=vec2<f32>(0.0);}
+  }
+ }
+ let inverseW=mix(1.0/s.a.w,1.0/s.b.w,fraction);let w=1.0/inverseW;
+ let param=mix(s.t0,s.t1,(fraction/s.b.w)/inverseW);
+ let position=mix(pa,pb,fraction)+offset;
+ let depth=mix(s.a.z/s.a.w,s.b.z/s.b.w,fraction)+bias;
+ o.clip=vec4<f32>(position*2.0/u.viewport.xy*w,depth*w,w);
+ o.color=vec4<f32>(mix(ca.rgb,cb.rgb,param),1.0);
  return o;
+}
+fn lineOutput(vi:u32,ii:u32,bias:f32)->Out {
+ let a=items[ii*2u];let b=items[ii*2u+1u];
+ return strokeOutput(vi,u.matrix*vec4<f32>(a.a.xyz,1.0),u.matrix*vec4<f32>(b.a.xyz,1.0),a.color,b.color,a.a.w,0.0,bias);
 }
 @vertex fn vs_line(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->Out { return lineOutput(vi,ii,-0.00001); }
 @vertex fn vs_grid(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->Out { return lineOutput(vi,ii,0.00002); }
+@vertex fn vs_arrow(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->Out {
+ let a=items[ii];return strokeOutput(vi,u.matrix*vec4<f32>(a.a.xyz,1.0),u.matrix*vec4<f32>(a.b.xyz,1.0),a.color,a.color,a.a.w,a.b.w,0.0);
+}
 @vertex fn vs_ui(@builtin(vertex_index) vi:u32)->Out {let p=items[vi];var o:Out;let x=p.a.x/u.viewport.x*2.0-1.0;let y=1.0-p.a.y/u.viewport.y*2.0;o.clip=vec4<f32>(x,y,0.0,1.0);o.color=p.color;o.uv=vec2<f32>(0.0);o.point=0.0;return o;}
 @vertex fn vs_box(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->Out {
 var corners=array<vec3<f32>,36>(vec3<f32>(0.0,0.0,0.0),vec3<f32>(0.0,1.0,0.0),vec3<f32>(1.0,1.0,0.0),vec3<f32>(0.0,0.0,0.0),vec3<f32>(1.0,1.0,0.0),vec3<f32>(1.0,0.0,0.0),vec3<f32>(0.0,0.0,1.0),vec3<f32>(1.0,0.0,1.0),vec3<f32>(1.0,1.0,1.0),vec3<f32>(0.0,0.0,1.0),vec3<f32>(1.0,1.0,1.0),vec3<f32>(0.0,1.0,1.0),vec3<f32>(0.0,0.0,0.0),vec3<f32>(1.0,0.0,0.0),vec3<f32>(1.0,0.0,1.0),vec3<f32>(0.0,0.0,0.0),vec3<f32>(1.0,0.0,1.0),vec3<f32>(0.0,0.0,1.0),vec3<f32>(0.0,1.0,0.0),vec3<f32>(0.0,1.0,1.0),vec3<f32>(1.0,1.0,1.0),vec3<f32>(0.0,1.0,0.0),vec3<f32>(1.0,1.0,1.0),vec3<f32>(1.0,1.0,0.0),vec3<f32>(0.0,0.0,0.0),vec3<f32>(0.0,0.0,1.0),vec3<f32>(0.0,1.0,1.0),vec3<f32>(0.0,0.0,0.0),vec3<f32>(0.0,1.0,1.0),vec3<f32>(0.0,1.0,0.0),vec3<f32>(1.0,0.0,0.0),vec3<f32>(1.0,1.0,0.0),vec3<f32>(1.0,1.0,1.0),vec3<f32>(1.0,0.0,0.0),vec3<f32>(1.0,1.0,1.0),vec3<f32>(1.0,0.0,1.0));

@@ -20,15 +20,16 @@ import (
 )
 
 type gallery struct {
-	mapTextures     [2]*ntcharts3d.Texture
-	mapStyle        int
-	flatMap, mapLit bool
-	scene           *ntcharts3d.Model
-	zones           *zone.Manager
-	tab             int
-	points          int
-	duration        time.Duration
-	pick            string
+	fieldNormalized, fieldHideLines, fieldWide bool
+	mapTextures                                [2]*ntcharts3d.Texture
+	mapStyle                                   int
+	flatMap, mapLit                            bool
+	scene                                      *ntcharts3d.Model
+	zones                                      *zone.Manager
+	tab                                        int
+	points                                     int
+	duration                                   time.Duration
+	pick                                       string
 }
 
 type quitMsg struct{}
@@ -36,6 +37,11 @@ type quitMsg struct{}
 func (g *gallery) load() tea.Cmd {
 	g.pick = ""
 	clear := g.scene.Clear()
+	legendTitle := ""
+	if g.tab == 4 {
+		legendTitle = "speed"
+	}
+	legend := g.scene.SetColorLegend(legendTitle)
 	axes := g.scene.SetAxes(ntcharts3d.Axes{})
 	aspect := g.scene.SetPlotAspect(math3d.Vec3{})
 	domain := g.scene.SetColorDomain(&ntcharts3d.Range{Min: -1, Max: 1})
@@ -52,13 +58,15 @@ func (g *gallery) load() tea.Cmd {
 			d.Z = append(d.Z, float32(z))
 			d.ColorValue = append(d.ColorValue, float32(z))
 		}
-		return tea.Batch(clear, axes, aspect, domain, g.scene.SetScatter("noisy sphere", d))
+		return tea.Batch(clear, legend, axes, aspect, domain, g.scene.SetScatter("noisy sphere", d))
 	case 1:
 		p := perlin.NewPerlin(2, 2, 3, 1)
 		axes = g.scene.SetAxes(ntcharts3d.Axes{Z: ntcharts3d.Axis{Name: "Height (µm)", Range: &ntcharts3d.Range{Min: -1, Max: 1}}})
-		return tea.Batch(clear, axes, aspect, domain, g.scene.SetSurface("Perlin surface", ntcharts3d.Surface{NX: 96, NY: 96, Sampler: func(x, y float64) float64 { return p.Noise2D(x*2, y*2) }, Wireframe: false}))
+		return tea.Batch(clear, legend, axes, aspect, domain, g.scene.SetSurface("Perlin surface", ntcharts3d.Surface{NX: 96, NY: 96, Sampler: func(x, y float64) float64 { return p.Noise2D(x*2, y*2) }, Wireframe: false}))
+	case 4:
+		return tea.Batch(clear, legend, axes, aspect, domain, g.loadVectorField())
 	case 3:
-		return tea.Batch(clear, axes, aspect, domain, g.loadTerrain())
+		return tea.Batch(clear, legend, axes, aspect, domain, g.loadTerrain())
 	default:
 		d := ntcharts3d.Bars{NX: 12, NY: 7}
 		var hours []string
@@ -78,7 +86,7 @@ func (g *gallery) load() tea.Cmd {
 				d.Values = append(d.Values, float32(v))
 			}
 		}
-		return tea.Batch(clear, axes, aspect, domain, g.scene.SetBars("hour × weekday", d))
+		return tea.Batch(clear, legend, axes, aspect, domain, g.scene.SetBars("hour × weekday", d))
 	}
 }
 
@@ -104,7 +112,7 @@ func (g *gallery) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return g, tea.Quit
 		case "tab":
-			g.tab = (g.tab + 1) % 4
+			g.tab = (g.tab + 1) % 5
 			return g, g.load()
 		case "b":
 			grid := g.scene.Grid()
@@ -125,7 +133,22 @@ func (g *gallery) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				g.mapLit = !g.mapLit
 				return g, g.setTerrain()
 			}
-		case "1", "2", "3", "4":
+		case "n":
+			if g.tab == 4 {
+				g.fieldNormalized = !g.fieldNormalized
+				return g, g.setVectorField()
+			}
+		case "s":
+			if g.tab == 4 {
+				g.fieldHideLines = !g.fieldHideLines
+				return g, g.load()
+			}
+		case "w":
+			if g.tab == 4 {
+				g.fieldWide = !g.fieldWide
+				return g, tea.Batch(g.setVectorField(), g.setStreamlines())
+			}
+		case "1", "2", "3", "4", "5":
 			g.tab = int(v.String()[0] - '1')
 			return g, g.load()
 		}
@@ -136,11 +159,14 @@ func (g *gallery) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (g *gallery) View() tea.View {
 	v := g.scene.View()
-	title := fmt.Sprintf("1 scatter · 2 surface · 3 bars · 4 map · tab switch · b grid · q quit   %s", g.pick)
+	title := fmt.Sprintf("1 scatter · 2 surface · 3 bars · 4 map · 5 vectors · tab switch · b grid · q quit   %s", g.pick)
 	b := g.scene.Bounds()
 	caption := fmt.Sprintf("X %.2g…%.2g  Y %.2g…%.2g  Z↑ %.2g…%.2g", b.Min.X, b.Max.X, b.Min.Y, b.Max.Y, b.Min.Z, b.Max.Z)
 	if g.tab == 3 {
 		caption = g.terrainCaption()
+	}
+	if g.tab == 4 {
+		caption = g.vectorCaption()
 	}
 	v.Content = g.zones.Scan(title + "\n" + v.Content + "\n" + caption)
 	v.AltScreen = true
@@ -159,11 +185,11 @@ func run() error {
 	renderMode := flag.String("render-mode", "gpu", "gpu, software, or wireframe")
 	medium := flag.String("medium", "auto", "auto, direct or shm (native shm requires a local terminal)")
 	points := flag.Int("points", 16000, "scatter points (1..500000)")
-	tab := flag.Int("tab", 1, "initial gallery (1..4)")
+	tab := flag.Int("tab", 1, "initial gallery (1..5)")
 	duration := flag.Duration("duration", 0, "quit automatically after duration")
 	rotate := flag.Bool("rotate", true, "initial auto-rotation")
 	flag.Parse()
-	if *points < 1 || *points > ntcharts3d.MaxPoints || *tab < 1 || *tab > 4 || *duration < 0 {
+	if *points < 1 || *points > ntcharts3d.MaxPoints || *tab < 1 || *tab > 5 || *duration < 0 {
 		return fmt.Errorf("invalid points, tab, or duration")
 	}
 	l := ntcharts3d.WebGPU

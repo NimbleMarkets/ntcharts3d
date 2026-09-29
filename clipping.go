@@ -124,6 +124,7 @@ func clipGeometry(g Geometry, b math3d.AABB) Geometry {
 	}
 	out := g
 	out.UV = nil
+	out.Arrows = nil
 	out.Points, out.Vertices, out.Indices, out.Boxes, out.Lines = nil, nil, nil, nil, nil
 	for _, p := range g.Points {
 		if contains(b, p.Position) {
@@ -150,6 +151,11 @@ func clipGeometry(g Geometry, b math3d.AABB) Geometry {
 			out.Indices = append(out.Indices, base, base+uint32(j), base+uint32(j+1))
 		}
 	}
+	for _, arrow := range g.Arrows {
+		if a, ok := clipArrow(arrow, b); ok {
+			out.Arrows = append(out.Arrows, a)
+		}
+	}
 	for _, box := range g.Boxes {
 		if clipped, ok := clipBox(box, b); ok {
 			out.Boxes = append(out.Boxes, clipped)
@@ -161,4 +167,16 @@ func clipGeometry(g Geometry, b math3d.AABB) Geometry {
 		}
 	}
 	return out
+}
+
+func clipArrow(a Arrow, b math3d.AABB) (Arrow, bool) {
+	start, end, ok := clipLine(Vertex{Position: a.Start}, Vertex{Position: a.End}, b)
+	if !ok {
+		return Arrow{}, false
+	}
+	if !contains(b, a.End) {
+		a.HeadSize = 0
+	} // A clipped boundary is not a vector tip.
+	a.Start, a.End = start.Position, end.Position
+	return a, true
 }

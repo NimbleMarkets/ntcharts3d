@@ -1,11 +1,12 @@
 # ntcharts3d gallery
 
-The gallery runs natively or in a go-booba browser terminal. It has four tabs:
+The gallery runs natively or in a go-booba browser terminal. It has five tabs:
 
 - Scatter: a 16,000-point noisy sphere.
 - Surface: a 96×96 Perlin grid with a Height (µm) axis and fixed −1…1 range.
 - Bars: a 12×7 hour/day chart with fixed 0…4 limits and X:Y:Z proportions of 1:.7:.6.
 - Map: a textured island with street/topographic imagery, terrain/flat views, and optional lighting.
+- Vectors: a swirling 3D flow with 147 arrows colored by speed and six analytic streamlines.
 
 Data is generated locally. The first three tabs have a fixed color domain and legend.
 The map uses image colors and omits the elevation color legend.
@@ -31,7 +32,7 @@ go run . -render-mode wireframe
 go run . -points 500000 -rotate=false
 ```
 
-Press 1/2/3/4 or Tab to change tabs. Drag to orbit, Shift-drag to pan, and scroll
+Press 1/2/3/4/5 or Tab to change tabs. Drag to orbit, Shift-drag to pan, and scroll
 to zoom. Press `b` to toggle grid lines, `v` for legend mode, `g` for Kitty/glyph output, `o` for projection,
 and `q` to quit. Hover shows coordinates and labels; clicks show the series name
 and datum in the header. See [all chart controls](../../API.md#interaction-and-embedding).
@@ -63,6 +64,26 @@ orientation easy to check. This is synthetic imagery, not fetched OSM data.
 See [terrain.go](terrain.go) for the complete textured surface example. A real
 composited map image can replace `terrainImage`; projection and tile fetching
 remain outside this library.
+
+## Vector field demo
+
+From the repository root:
+
+```sh
+go -C examples/gallery run . -tab 5 -rotate=false
+# Compare raster fallback:
+go -C examples/gallery run . -tab 5 -rotate=false -render-mode software
+```
+
+- `n`: switch magnitude-scaled/equal-length arrows; color always indicates speed.
+- `s`: show/hide the streamlines.
+- `w`: switch thin/wide shafts and lines.
+- Drag to orbit, scroll to zoom, `o` for projection, and `r` for auto-rotation.
+
+Arrowheads face the camera. Hover or click a stroke to inspect its vector or
+streamline label. The gray helices are analytic streamlines of the same vector
+field. The example uses `SetVectorField` and `SetLines`; see
+[vector_field.go](vector_field.go). It works in the browser gallery under tab `5`.
 
 ## Browser
 

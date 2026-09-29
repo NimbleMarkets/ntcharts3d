@@ -6,7 +6,7 @@ and displays the result through ntcharts `picture.Model`.
 ## Terminology and composition
 
 A `Model` is one chart with named series, a shared coordinate space, and one
-camera. `Scatter`, `Surface`, and `Bars` can coexist in a chart. Series setters
+camera. `Scatter`, `Surface`, `Bars`, `Lines`, and `VectorField` can coexist in a chart. Series setters
 replace a matching name in place or append a new name. Custom series implement
 `Series` and supply `Geometry` for rendering and picking.
 
@@ -196,7 +196,8 @@ axes and the legend; crowded labels are omitted. Clicking emits a `PickMsg` with
 returned by `Series.Name()`. Dragging does not emit a pick.
 
 Picking tests projected point radii with a minimum tolerance based on cell
-size, ray/box intersections for bars, and nearby grid vertices for surfaces.
+size, projected strokes for lines/arrows, ray/box intersections for bars,
+and nearby grid vertices for surfaces.
 Overlapping hits select the nearest depth.
 
 By default, the chart owns a BubbleZone manager and starts at the terminal
@@ -206,11 +207,81 @@ accepts mouse input. `SetSize` includes two rows for the title and hover details
 Call `Close` after the program exits to release GPU resources
 and pending shared-memory images.
 
+## Lines and vector fields
+
+`SetLines` creates independent line segments. To make a polyline or streamline,
+repeat adjacent endpoints in the `Start` and `End` arrays:
+
+```go
+cmd := chart.SetLines("trajectory", ntcharts3d.Lines{
+    Start: []math3d.Vec3{{X: 0}, {X: 1, Y: 1}},
+    End:   []math3d.Vec3{{X: 1, Y: 1}, {X: 2, Y: 1, Z: 1}},
+    Width: 3,
+    Color: []uint32{0x4488ccff, 0x4488ccff},
+})
+```
+
+Start/End lengths must match, with 1–262,144 segments. `Width` is in render pixels,
+1–32; zero defaults to 1. Segments use butt caps and independent ends, without
+polyline joins or dashes. `Color`, `ColorValue`, and `Labels` are optional columns
+with one entry per segment. Without packed `Color`, the palette maps `ColorValue`
+or the midpoint Z of each segment. Existing custom `Geometry.Lines` keeps its
+endpoint-pair format; set `Geometry.LineWidth` to change its width.
+
+`SetVectorField` creates arrows from paired world positions and vectors:
+
+```go
+cmd = chart.SetVectorField("velocity", ntcharts3d.VectorField{
+    Origins: positions, // []math3d.Vec3
+    Vectors: velocities, // []math3d.Vec3
+    Scale:   0.25,
+    Width:   2,
+    HeadSize: 9,
+    Normalize: false,
+})
+```
+
+Origins/Vectors must have equal lengths, with 1–100,000 entries. The tip is
+`origin + vector * Scale`; zero Scale defaults to 1, and negative/nonfinite scales
+are invalid. `Normalize: true` makes all nonzero vectors `Scale` data units long.
+The palette maps the **original vector magnitude**, so normalization changes
+length but preserves the color meaning. Optional `ColorValue` overrides that
+scalar; packed `Color` bypasses palette mapping and its legend. Optional `Labels`
+identify vectors during picking. Zero vectors contribute to the domain and data
+bounds but produce no arrow. All setter slices are copied, and invalid input
+leaves the previous series intact. Both series support shared/fixed color domains.
+
+Arrows are unlit, camera-facing shafts and filled triangular heads anchored to
+3D endpoints, not cylindrical/conical meshes. Width defaults to 2 pixels (1–32),
+and HeadSize defaults to 8 pixels (1–64). A head shrinks to at most 45% of the
+projected segment length; its full base width is the larger of its length and
+1.5 times the shaft width. View-aligned arrows appear as width-sized squares.
+Widths are measured at the renderer's resolution, so software/glyph upscaling
+can make them look thicker than native GPU output.
+
+Custom series can populate `Geometry.Arrows` with `Arrow{Start, End, Width,
+HeadSize, Color, Datum}`. Custom Width zero means 1 pixel; custom HeadSize zero
+means a shaft without a head. Arrow instances are uploaded once per geometry
+revision and expanded on the GPU. Orbit, projection, and viewport changes do not
+rebuild or upload instance data. Software renders the same shapes; wireframe
+shows centerlines and head outlines with single-rune strokes.
+
+Fixed plot ranges clip centerlines in data space. Camera near/far planes are
+also clipped before perspective division. A clipped tip loses its arrowhead;
+an unclipped tip retains it. Pixel widths may extend across the plot boundary.
+Picking follows visible strokes, returning the original segment index or arrow
+Datum and a position along the stroke. Above `MaxPickPoints` combined points,
+segments, and arrows, those primitives are excluded from picking; bars and mesh
+vertices remain eligible.
+
+See [the vector-field example](examples/gallery/vector_field.go): gallery tab 5
+combines a swirling flow with analytic streamlines and magnitude coloring.
+
 ## Textured terrain and flat maps
 
 `Surface.Material` and `Geometry.Material` apply to indexed triangles. A texture
 replaces vertex/palette colors. `Material.Unlit` bypasses lighting, preserving map
-colors and labels; otherwise the scene light shades the texture. Points, lines,
+colors and labels; otherwise the scene light shades the texture. Points, lines, arrows,
 and boxes retain their existing appearance.
 
 ```go
@@ -294,15 +365,16 @@ implements read-only `image.Image` for custom renderers. The default renderer ru
 uploads and readback copy data across JavaScript calls.
 
 Presentation uses complete frames read back into Go memory. `Geometry.Lines`
-supports pairs of vertices; there is no line-width API.
+supports pairs of vertices with `Geometry.LineWidth` in render pixels.
+`Geometry.Arrows` holds compact arrow instances; both are unlit and opaque.
 
 ## Limits and fallback
 
 | Render mode | Limits |
 | --- | --- |
-| WebGPU | 500,000 scatter points total; `WithMaxPoints` can lower this. Surface dimensions 2–512; bar grids up to 512×512. Framebuffer area capped at 4096×2160 pixels. |
-| Software | 320×200 pixels; up to 10,000 sampled points and 20,000 sampled untextured triangles per series (textured meshes retain all triangles); first 2,000 bars per series. |
-| Wireframe | Canvas runes; up to 2,000 sampled points and 2,000 sampled triangles per series; first 500 bars per series. |
+| WebGPU | 500,000 scatter points total; `WithMaxPoints` can lower this. Surface dimensions 2–512; bar grids up to 512×512. Up to 100,000 arrows and 262,144 line segments per series. Framebuffer area capped at 4096×2160 pixels. |
+| Software | 320×200 pixels; up to 10,000 sampled points and 20,000 sampled untextured triangles per series (textured meshes retain all triangles); first 2,000 bars per series; up to 20,000 sampled line segments and 10,000 sampled arrows per series. |
+| Wireframe | Canvas runes; up to 2,000 sampled points and 2,000 sampled triangles per series; first 500 bars per series; up to 2,000 sampled arrows per series; stroke widths are represented by single canvas runes. |
 
 GPU initialization or rendering failure switches to software. A CPU adapter
 also selects software. Three consecutive software frames over 150 ms switch
@@ -314,8 +386,8 @@ including when WebGPU is active. Wireframe uses canvas runes. Large surfaces
 may have holes in software and wireframe modes because they are subsampled.
 Software triangles crossing the near plane are dropped rather than clipped.
 
-Point picking is disabled above 200,000 total scatter points. Bars and surface
-vertices remain pickable.
+Point, line, and arrow picking is disabled above 200,000 combined scatter points,
+line segments, and arrows. Bars and surface vertices remain pickable.
 
 ## Build and test
 

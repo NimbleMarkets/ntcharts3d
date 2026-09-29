@@ -13,21 +13,25 @@ import (
 
 func wireRender(f Frame, cols, rows int) string {
 	c := canvas.New(cols, rows)
-	drawLine := func(a, b math3d.Vec3, ink color.Color) {
+	drawPixels := func(x, y, xx, yy float32, ink color.Color) {
 		style := lipgloss.NewStyle()
 		if ink != nil {
 			style = style.Foreground(ink)
-		}
-		x, y, _, ok := f.Matrix.Project(a, cols, rows)
-		xx, yy, _, ok2 := f.Matrix.Project(b, cols, rows)
-		if !ok && !ok2 {
-			return
 		}
 		n := min(4*max(cols, rows), max(1, int(max(abs(xx-x), abs(yy-y)))))
 		for i := 0; i <= n; i++ {
 			t := float32(i) / float32(n)
 			c.SetRuneWithStyle(canvas.Point{X: int(x + (xx-x)*t), Y: int(y + (yy-y)*t)}, '·', style)
 		}
+	}
+	drawLine := func(a, b math3d.Vec3, ink color.Color) {
+		frame := f
+		frame.Width, frame.Height = cols, rows
+		s, ok := projectStroke(frame, a, b)
+		if !ok {
+			return
+		}
+		drawPixels(s.a.x, s.a.y, s.b.x, s.b.y, ink)
 	}
 	line := func(a, b math3d.Vec3) { drawLine(a, b, nil) }
 	for i := 0; i+1 < len(f.GridLines); i += 2 {
@@ -60,7 +64,24 @@ func wireRender(f Frame, cols, rows int) string {
 			}
 		}
 		for i := 0; i+1 < len(g.Lines); i += 2 {
-			line(g.Lines[i].Position, g.Lines[i+1].Position)
+			drawLine(g.Lines[i].Position, g.Lines[i+1].Position, g.Lines[i].Color)
+		}
+		arrowStep := max(1, (len(g.Arrows)+1999)/2000)
+		for i := 0; i < len(g.Arrows); i += arrowStep {
+			a := g.Arrows[i]
+			s, ok := projectStroke(f, a.Start, a.End)
+			if !ok {
+				continue
+			}
+			sx, sy := float32(cols)/float32(f.Width), float32(rows)/float32(f.Height)
+			draw := func(x, y, xx, yy float32) { drawPixels(x*sx, y*sy, xx*sx, yy*sy, a.Color) }
+			draw(s.a.x, s.a.y, s.b.x, s.b.y)
+			hl, hw := s.head(a.HeadSize, lineWidth(a.Width))
+			if hl > 0 {
+				x, y := s.b.x-s.dx*hl, s.b.y-s.dy*hl
+				draw(s.b.x, s.b.y, x-s.dy*hw, y+s.dx*hw)
+				draw(s.b.x, s.b.y, x+s.dy*hw, y-s.dx*hw)
+			}
 		}
 	}
 	layout := layoutAxes(f, cols, rows, 1, 1, nil)

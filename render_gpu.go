@@ -40,8 +40,8 @@ type gpuRenderer struct {
 	bindLayout                      *wgpu.BindGroupLayout
 	layout                          *wgpu.PipelineLayout
 	uniform                         *wgpu.Buffer
-	pipelines                       [6]*wgpu.RenderPipeline
-	batches                         [6]gpuBatch // scatter, triangles, boxes, lines, screen overlay, grid
+	pipelines                       [7]*wgpu.RenderPipeline
+	batches                         [7]gpuBatch // scatter, triangles, boxes, lines, screen overlay, grid, arrows
 	revision                        uint64
 	uploads                         uint64
 }
@@ -69,7 +69,7 @@ func (g *gpuRenderer) setup() (err error) {
 		if err != nil {
 			return err
 		}
-		for i, entry := range []string{"vs_point", "vs_mesh", "vs_box", "vs_line", "vs_ui", "vs_grid"} {
+		for i, entry := range []string{"vs_point", "vs_mesh", "vs_box", "vs_line", "vs_ui", "vs_grid", "vs_arrow"} {
 			primitive := gputypes.PrimitiveState{Topology: gputypes.PrimitiveTopologyTriangleList, CullMode: gputypes.CullModeBack}
 			if i == 0 {
 				primitive.CullMode = gputypes.CullModeNone
@@ -102,7 +102,7 @@ func floats(values ...float32) []byte {
 }
 
 func (g *gpuRenderer) upload(dev *wgpu.Device, f Frame) error {
-	var data [4][]byte
+	var data [7][]byte
 	vertex := func(kind int, v Vertex, radius float32) {
 		data[kind] = append(data[kind], floats(v.Position.X, v.Position.Y, v.Position.Z, radius, v.Normal.X, v.Normal.Y, v.Normal.Z, 0, float32(v.Color.R)/255, float32(v.Color.G)/255, float32(v.Color.B)/255, float32(v.Color.A)/255)...)
 	}
@@ -125,10 +125,16 @@ func (g *gpuRenderer) upload(dev *wgpu.Device, f Frame) error {
 			vertex(2, Vertex{b.Min, b.Size, b.Color}, 1)
 		}
 		for _, v := range geom.Lines {
-			vertex(3, v, 1)
+			vertex(3, v, lineWidth(geom.LineWidth))
+		}
+		for _, a := range geom.Arrows {
+			data[6] = append(data[6], floats(a.Start.X, a.Start.Y, a.Start.Z, lineWidth(a.Width), a.End.X, a.End.Y, a.End.Z, a.HeadSize, float32(a.Color.R)/255, float32(a.Color.G)/255, float32(a.Color.B)/255, 1)...)
 		}
 	}
 	for i, d := range data {
+		if i == 4 || i == 5 {
+			continue
+		}
 		old := &g.batches[i]
 		if old.bind != nil {
 			old.bind.Release()
@@ -260,7 +266,7 @@ func (g *gpuRenderer) Render(f Frame) (image.Image, error) {
 		if err != nil {
 			return err
 		}
-		for _, i := range []int{5, 0, 1, 2, 3, 4} {
+		for _, i := range []int{5, 0, 1, 2, 3, 6, 4} {
 			if i == 2 {
 				for _, b := range g.texturedBatches {
 					pass.SetPipeline(g.texturePipeline)
@@ -284,6 +290,9 @@ func (g *gpuRenderer) Render(f Frame) (image.Image, error) {
 			}
 			if i == 3 || i == 5 {
 				v, n = 6, b.count/2
+			}
+			if i == 6 {
+				v, n = 9, b.count
 			}
 			pass.Draw(gputypes.DrawArgs{VertexCount: v, InstanceCount: n})
 		}

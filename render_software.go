@@ -37,19 +37,6 @@ func softwareRender(f Frame) image.Image {
 			img.Pix[off], img.Pix[off+1], img.Pix[off+2] = c.R, c.G, c.B
 		}
 	}
-	line := func(a, b Vertex) {
-		x, y, z, ok := f.Matrix.Project(a.Position, f.Width, f.Height)
-		xx, yy, zz, ok2 := f.Matrix.Project(b.Position, f.Width, f.Height)
-		if !ok && !ok2 {
-			return
-		}
-		steps := max(1, int(max(abs(xx-x), abs(yy-y))))
-		steps = min(steps, 4*max(f.Width, f.Height))
-		for i := 0; i <= steps; i++ {
-			t := float32(i) / float32(steps)
-			put(int(x+(xx-x)*t), int(y+(yy-y)*t), z+(zz-z)*t, a.Color)
-		}
-	}
 	tri := func(a, b, c Vertex, uv [3]UV, material *Material) {
 		if material != nil && material.Unlit {
 			a.Normal = math3d.Vec3{}
@@ -103,7 +90,7 @@ func softwareRender(f Frame) image.Image {
 		}
 	}
 	for i := 0; i+1 < len(f.GridLines); i += 2 {
-		line(f.GridLines[i], f.GridLines[i+1])
+		rasterStroke(f, f.GridLines[i], f.GridLines[i+1], 1, 0, .00002, put)
 	}
 	for _, g := range f.Geometry {
 		step := max(1, (len(g.Points)+9999)/10000)
@@ -144,8 +131,14 @@ func softwareRender(f Frame) image.Image {
 				tri(v[j], v[j+1], v[j+2], [3]UV{}, nil)
 			}
 		}
-		for i := 0; i+1 < len(g.Lines); i += 2 {
-			line(g.Lines[i], g.Lines[i+1])
+		lineStep := 2 * max(1, (len(g.Lines)/2+19999)/20000)
+		for i := 0; i+1 < len(g.Lines); i += lineStep {
+			rasterStroke(f, g.Lines[i], g.Lines[i+1], g.LineWidth, 0, -.00001, put)
+		}
+		arrowStep := max(1, (len(g.Arrows)+9999)/10000)
+		for i := 0; i < len(g.Arrows); i += arrowStep {
+			a := g.Arrows[i]
+			rasterStroke(f, Vertex{Position: a.Start, Color: a.Color}, Vertex{Position: a.End, Color: a.Color}, a.Width, a.HeadSize, 0, put)
 		}
 	}
 	drawOverlays(img, f)

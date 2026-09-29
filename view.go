@@ -22,7 +22,7 @@ func (m *Model) View() tea.View {
 	}
 	count := 0
 	for _, s := range m.series {
-		count += len(s.geometry.Points) + len(s.geometry.Boxes) + len(s.geometry.Vertices)
+		count += len(s.geometry.Points) + len(s.geometry.Boxes) + len(s.geometry.Vertices) + len(s.geometry.Lines)/2 + len(s.geometry.Arrows)
 	}
 	legendMode := "image"
 	if m.colorLegendMode == ColorLegendText || m.renderMode == Wireframe {
