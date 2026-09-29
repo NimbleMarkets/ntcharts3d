@@ -5,6 +5,12 @@ Versioning; the API may change during the v0.x series.
 
 ## [Unreleased]
 
+### Added
+
+- `Model.Snapshot` draws the chart into an image of a chosen size without a
+  terminal, on the GPU with a software fallback, and reports which drew it.
+  Software snapshots draw every primitive rather than a sample.
+
 ## [0.1.0] - 2026-09-29
 
 Initial release of Z-up 3D charts for Bubble Tea terminals and go-booba browser

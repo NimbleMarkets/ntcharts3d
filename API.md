@@ -368,6 +368,40 @@ Presentation uses complete frames read back into Go memory. `Geometry.Lines`
 supports pairs of vertices with `Geometry.LineWidth` in render pixels.
 `Geometry.Arrows` holds compact arrow instances; both are unlit and opaque.
 
+## Snapshots
+
+`Snapshot` draws the chart as it stands into an image of a chosen size, without
+a terminal. The program need not be running, and the chart's size in cells
+plays no part: the picture's own shape sets the camera's aspect.
+
+```go
+chart := ntcharts3d.New(1, 3, ntcharts3d.WithBackground(color.White))
+defer chart.Close()
+chart.SetSeries(mesh)
+chart.SetCamera(ntcharts3d.Camera{Alpha: 30, Beta: 45, Distance: 3})
+img, mode, err := chart.Snapshot(1600, 1200)
+```
+
+The chart is drawn in its requested render mode, and `mode` is the one that
+drew it. WebGPU falls back to software when the GPU is unavailable or fails.
+That fallback is the snapshot's alone; it does not change how the chart is
+drawn on screen, nor `Err()`. A caller with a renderer of its own can compare
+`mode` with `WebGPU` and use that instead.
+
+A snapshot is for keeping, so a software snapshot draws every point, triangle,
+bar, line, and arrow, where frames for the terminal are sampled. The glyph and
+software limit of 320×200 pixels does not apply. The area may not exceed
+4096×2160 pixels. Wireframe draws text and has no image; `Snapshot` returns an
+error for it, as it does for a closed chart.
+
+The image holds what the renderer draws, axes and image legends among them.
+Hide them with `SetAxes` and `SetColorLegendVisible` for a picture of the data
+alone. Views of the same data reuse its geometry on the GPU: only the first
+uploads it.
+
+`Snapshot` returns when the image is drawn. Like the chart's other methods, it
+must not be called while another goroutine changes the chart.
+
 ## Limits and fallback
 
 | Render mode | Limits |

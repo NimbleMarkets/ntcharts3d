@@ -92,8 +92,15 @@ func softwareRender(f Frame) image.Image {
 	for i := 0; i+1 < len(f.GridLines); i += 2 {
 		rasterStroke(f, f.GridLines[i], f.GridLines[i+1], 1, 0, .00002, put)
 	}
+	// sampled is the step that draws at most limit of n, or all of them.
+	sampled := func(n, limit int) int {
+		if f.complete {
+			return 1
+		}
+		return max(1, (n+limit-1)/limit)
+	}
 	for _, g := range f.Geometry {
-		step := max(1, (len(g.Points)+9999)/10000)
+		step := sampled(len(g.Points), 10000)
 		for i := 0; i < len(g.Points); i += step {
 			p := g.Points[i]
 			x, y, z, ok := f.Matrix.Project(p.Position, f.Width, f.Height)
@@ -109,7 +116,7 @@ func softwareRender(f Frame) image.Image {
 				}
 			}
 		}
-		stride := 3 * max(1, (len(g.Indices)/3+19999)/20000)
+		stride := 3 * sampled(len(g.Indices)/3, 20000)
 		if textured(g) {
 			stride = 3
 		}
@@ -123,7 +130,7 @@ func softwareRender(f Frame) image.Image {
 			tri(g.Vertices[g.Indices[i]], g.Vertices[g.Indices[i+1]], g.Vertices[g.Indices[i+2]], uv, g.Material)
 		}
 		for i, b := range g.Boxes {
-			if i >= 2000 {
+			if i >= 2000 && !f.complete {
 				break
 			}
 			v := boxVertices(b)
@@ -131,11 +138,11 @@ func softwareRender(f Frame) image.Image {
 				tri(v[j], v[j+1], v[j+2], [3]UV{}, nil)
 			}
 		}
-		lineStep := 2 * max(1, (len(g.Lines)/2+19999)/20000)
+		lineStep := 2 * sampled(len(g.Lines)/2, 20000)
 		for i := 0; i+1 < len(g.Lines); i += lineStep {
 			rasterStroke(f, g.Lines[i], g.Lines[i+1], g.LineWidth, 0, -.00001, put)
 		}
-		arrowStep := max(1, (len(g.Arrows)+9999)/10000)
+		arrowStep := sampled(len(g.Arrows), 10000)
 		for i := 0; i < len(g.Arrows); i += arrowStep {
 			a := g.Arrows[i]
 			rasterStroke(f, Vertex{Position: a.Start, Color: a.Color}, Vertex{Position: a.End, Color: a.Color}, a.Width, a.HeadSize, 0, put)

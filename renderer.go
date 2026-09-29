@@ -50,6 +50,10 @@ type Frame struct {
 	ColorLegends    []ColorLegend
 	Background      color.RGBA
 	Light           Light
+
+	// complete asks the software renderer to draw everything. For the
+	// terminal it samples large series to keep its frames prompt.
+	complete bool
 }
 
 // Renderer draws a Frame into a Go image. Implementations must serialize Render

@@ -44,6 +44,11 @@ type tick struct {
 	at             time.Time
 }
 
+// maxFramePixels bounds the framebuffer's area.
+const maxFramePixels = 4096 * 2160
+
+// frame is what the terminal shows: sized by its cells, and kept small where
+// the picture is drawn in software or shown as glyphs.
 func (m *Model) frame() Frame {
 	cw, ch := m.pic.CellPixelSize()
 	plotRows := m.plotHeight()
@@ -53,15 +58,21 @@ func (m *Model) frame() Frame {
 		factor := math.Min(1, math.Min(320/float64(w), 200/float64(h)))
 		w, h = max(1, int(float64(w)*factor)), max(1, int(float64(h)*factor))
 	}
-	if w*h > 4096*2160 {
-		factor := math.Sqrt(float64(4096*2160) / float64(w*h))
+	if w*h > maxFramePixels {
+		factor := math.Sqrt(float64(maxFramePixels) / float64(w*h))
 		w, h = max(1, int(float64(w)*factor)), max(1, int(float64(h)*factor))
 	}
+	return m.frameSized(w, h, float32(plotCols*cw)/float32(plotRows*ch), m.renderMode)
+}
+
+// frameSized is the chart as it stands, w by h pixels, seen through a camera
+// of the given aspect and drawn in the given mode.
+func (m *Model) frameSized(w, h int, aspect float32, mode RenderMode) Frame {
 	b := m.PlotBounds()
 	n := m.plotTransform().matrix
 	geoms := m.preparedGeometry()
 	var legends []ColorLegend
-	if m.colorLegendVisible && m.colorLegendMode == ColorLegendImage && m.renderMode != Wireframe {
+	if m.colorLegendVisible && m.colorLegendMode == ColorLegendImage && mode != Wireframe {
 		if m.sharedColorDomain || m.colorDomain != nil {
 			lo, hi, found := float32(0), float32(0), false
 			for _, s := range m.series {
@@ -92,7 +103,7 @@ func (m *Model) frame() Frame {
 			}
 		}
 	}
-	f := Frame{Width: w, Height: h, Matrix: m.camera.Matrix(float32(plotCols*cw) / float32(plotRows*ch)).Mul(n), Revision: m.revision, TextureRevision: m.textureRevision, Bounds: b, Axes: m.axisFrames(b), Geometry: geoms, ColorLegends: legends, Background: m.background, Light: m.light}
+	f := Frame{Width: w, Height: h, Matrix: m.camera.Matrix(aspect).Mul(n), Revision: m.revision, TextureRevision: m.textureRevision, Bounds: b, Axes: m.axisFrames(b), Geometry: geoms, ColorLegends: legends, Background: m.background, Light: m.light}
 	f.GridLines = m.gridLines(f)
 	f.Emphasis = m.emphasisFrame(f)
 	return f
