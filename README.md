@@ -6,14 +6,20 @@
 import "github.com/NimbleMarkets/ntcharts3d"
 ```
 
-One `ntcharts3d.Model` combines named scatter, surface, bar, or custom series
+One `ntcharts3d.Model` combines named scatter, surface, bar, line, vector-field, or custom series
 with a shared camera. Charts support orbit, pan, zoom, picking, color legends,
 hover highlights, fixed axis and color ranges, plot proportions, and in-chart
 axis labels with optional back-plane grids.
 Rendering uses go-gpuimage v0.1.0, with software and wireframe fallbacks.
 ntcharts handles terminal images and glyph output.
 
-This project is unreleased. See the [API guide](API.md),
+The initial release is **v0.1.0**. Install it with:
+
+```sh
+go get github.com/NimbleMarkets/ntcharts3d@v0.1.0
+```
+
+See the [changelog](CHANGELOG.md), [API guide](API.md),
 [gallery instructions](examples/gallery/README.md),
 [transport diagnostic](examples/transport/README.md), and [demo site](web/README.md).
 

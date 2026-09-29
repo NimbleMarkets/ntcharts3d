@@ -27,7 +27,8 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version-file: go.mod
+          # The examples require a newer patch release than the library.
+          go-version-file: examples/gallery/go.mod
           cache-dependency-path: |
             go.sum
             examples/gallery/go.sum
