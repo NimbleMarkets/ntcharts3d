@@ -11,6 +11,13 @@ Versioning; the API may change during the v0.x series.
   terminal, on the GPU with a software fallback, and reports which drew it.
   Software snapshots draw every primitive rather than a sample.
 
+### Changed
+
+- Custom meshes may have `MaxMeshTriangles` (932,067) faces per series, up from
+  524,288, and as many vertices as indices, up from 262,144. A mesh that gives
+  each face its own vertices, for flat shading, was held to 87,381 faces. The
+  new limit is what WebGPU's guaranteed storage buffer binding holds.
+
 ## [0.1.0] - 2026-09-29
 
 Initial release of Z-up 3D charts for Bubble Tea terminals and go-booba browser

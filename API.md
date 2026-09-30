@@ -406,9 +406,14 @@ must not be called while another goroutine changes the chart.
 
 | Render mode | Limits |
 | --- | --- |
-| WebGPU | 500,000 scatter points total; `WithMaxPoints` can lower this. Surface dimensions 2–512; bar grids up to 512×512. Up to 100,000 arrows and 262,144 line segments per series. Framebuffer area capped at 4096×2160 pixels. |
+| WebGPU | 500,000 scatter points total; `WithMaxPoints` can lower this. Surface dimensions 2–512; bar grids up to 512×512. Custom meshes up to `MaxMeshTriangles` (932,067) per series, with vertices shared or not. Up to 100,000 arrows and 262,144 line segments per series. Framebuffer area capped at 4096×2160 pixels. |
 | Software | 320×200 pixels; up to 10,000 sampled points and 20,000 sampled untextured triangles per series (textured meshes retain all triangles); first 2,000 bars per series; up to 20,000 sampled line segments and 10,000 sampled arrows per series. |
 | Wireframe | Canvas runes; up to 2,000 sampled points and 2,000 sampled triangles per series; first 500 bars per series; up to 2,000 sampled arrows per series; stroke widths are represented by single canvas runes. |
+
+The mesh limit is what fits the largest storage buffer binding that WebGPU
+promises, 128 MiB, at 48 bytes for each index. Native adapters often allow
+more, and a browser may allow less for several large series together, which
+share one buffer.
 
 GPU initialization or rendering failure switches to software. A CPU adapter
 also selects software. Three consecutive software frames over 150 ms switch

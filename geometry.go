@@ -46,6 +46,16 @@ type Geometry struct {
 	HasColorRange bool
 }
 
+// MaxMeshIndices is the most indices a series' mesh may have, three to a
+// triangle. The GPU renderer keeps a 48-byte record for each index, vertices
+// shared or not, in a storage buffer; 128 MiB is the largest binding that
+// WebGPU promises, and so the largest mesh that can be drawn wherever WebGPU
+// can. MaxMeshTriangles is the same limit, counted in faces.
+const (
+	MaxMeshTriangles = (128 << 20) / 48 / 3
+	MaxMeshIndices   = 3 * MaxMeshTriangles
+)
+
 func validateGeometry(g Geometry) error {
 	if !validWidth(g.LineWidth) {
 		return fmt.Errorf("ntcharts3d: invalid line width")
@@ -98,8 +108,10 @@ func validateGeometry(g Geometry) error {
 		return fmt.Errorf("ntcharts3d: invalid bounds")
 	}
 
-	if len(g.Points) > MaxPoints || len(g.Vertices) > 512*512 || len(g.Indices) > 6*512*512 || len(g.Boxes) > 512*512 || len(g.Lines) > 2*512*512 {
-		return fmt.Errorf("ntcharts3d: geometry exceeds v0 cap")
+	// A mesh may give each face vertices of its own, so it may have as many
+	// vertices as indices.
+	if len(g.Points) > MaxPoints || len(g.Vertices) > MaxMeshIndices || len(g.Indices) > MaxMeshIndices || len(g.Boxes) > 512*512 || len(g.Lines) > 2*512*512 {
+		return fmt.Errorf("ntcharts3d: geometry exceeds cap")
 	}
 	if len(g.Indices)%3 != 0 || len(g.Lines)%2 != 0 {
 		return fmt.Errorf("ntcharts3d: incomplete triangle or line")

@@ -46,3 +46,22 @@ func TestGPUSnapshot(t *testing.T) {
 		t.Fatalf("a small snapshot: %v %v", mode, err)
 	}
 }
+
+type mesh struct{ geometry Geometry }
+
+func (m mesh) Name() string                       { return "mesh" }
+func (m mesh) Geometry(Palette) (Geometry, error) { return m.geometry, nil }
+
+func TestGPUDrawsTheLargestMesh(t *testing.T) {
+	m := New(80, 24)
+	defer m.Close()
+	m.SetSeries(mesh{triangles(MaxMeshTriangles)})
+	if m.Err() != nil {
+		t.Fatal(m.Err())
+	}
+	img, mode, err := m.Snapshot(1024, 1024)
+	if err != nil || mode != WebGPU {
+		t.Fatalf("mode=%v err=%v", mode, err)
+	}
+	nonBackground(t, img, m.background)
+}

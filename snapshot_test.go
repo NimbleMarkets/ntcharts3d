@@ -7,6 +7,8 @@ import (
 	"image"
 	"image/color"
 	"testing"
+
+	"github.com/NimbleMarkets/ntcharts3d/math3d"
 )
 
 // recorder is a renderer that notes the frames it is given.
@@ -180,5 +182,56 @@ func TestSnapshotRefusals(t *testing.T) {
 	closed.Close()
 	if img, _, err := closed.Snapshot(100, 100); err == nil || img != nil {
 		t.Error("a closed chart was drawn")
+	}
+}
+
+// triangles is a mesh of n faces, each with three vertices of its own, as a
+// model with flat shading has.
+func triangles(n int) Geometry {
+	g := Geometry{Vertices: make([]Vertex, 0, 3*n), Indices: make([]uint32, 0, 3*n)}
+	side := 1
+	for 2*side*side < n {
+		side++
+	}
+	for i := range n {
+		x, y := float32(i/2%side), float32(i/2/side)
+		corners := [3]math3d.Vec3{{X: x, Y: y}, {X: x + 1, Y: y}, {X: x, Y: y + 1}}
+		if i%2 == 1 {
+			corners = [3]math3d.Vec3{{X: x + 1, Y: y}, {X: x + 1, Y: y + 1}, {X: x, Y: y + 1}}
+		}
+		for _, p := range corners {
+			g.Indices = append(g.Indices, uint32(len(g.Vertices)))
+			g.Vertices = append(g.Vertices, Vertex{Position: p, Normal: math3d.Vec3{Z: 1}, Color: color.RGBA{100, 180, 230, 255}})
+			g.Bounds.Include(p)
+		}
+	}
+	return g
+}
+
+func TestMeshLimitIsWhatTheGPUHolds(t *testing.T) {
+	// Each index becomes 48 bytes of a storage buffer, and 128 MiB is the
+	// largest binding that WebGPU promises.
+	if MaxMeshIndices%3 != 0 || MaxMeshIndices*48 > 128<<20 || (MaxMeshIndices+3)*48 <= 128<<20 {
+		t.Fatalf("MaxMeshIndices = %d", MaxMeshIndices)
+	}
+	if MaxMeshTriangles != MaxMeshIndices/3 || MaxMeshTriangles < 900000 {
+		t.Fatalf("MaxMeshTriangles = %d", MaxMeshTriangles)
+	}
+	// A mesh may give every face vertices of its own.
+	if err := validateGeometry(triangles(MaxMeshTriangles)); err != nil {
+		t.Fatalf("a mesh at the limit: %v", err)
+	}
+	over := triangles(MaxMeshTriangles + 1)
+	if err := validateGeometry(over); err == nil {
+		t.Fatal("a mesh over the limit was accepted")
+	}
+	// The limit is on what is drawn: vertices shared by many faces do not
+	// make room for more faces.
+	shared := triangles(1)
+	for len(shared.Indices) <= MaxMeshIndices {
+		shared.Indices = append(shared.Indices, 0, 1, 2)
+	}
+	if err := validateGeometry(shared); err == nil {
+		t.Fatal("more indices than the GPU holds were accepted")
 	}
 }
