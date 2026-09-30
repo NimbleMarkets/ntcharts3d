@@ -1,9 +1,9 @@
-# Changelog
+# `ntcharts3d` CHANGELOG
 
-Notable changes to ntcharts3d are recorded here. Versions follow Semantic
+Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d` are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
-## [Unreleased]
+## [0.1.0] - 2026-09-30
 
 ### Added
 
