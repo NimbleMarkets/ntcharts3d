@@ -13,6 +13,9 @@ Versioning; the API may change during the v0.x series.
 
 ### Changed
 
+- Software frames for Kitty output are drawn at the plot's full size, no longer
+  at 320×200 and enlarged. They are reduced while frames are slow, and only at
+  their smallest do slow frames count toward the switch to wireframe.
 - Custom meshes may have `MaxMeshTriangles` (932,067) faces per series, up from
   524,288, and as many vertices as indices, up from 262,144. A mesh that gives
   each face its own vertices, for flat shading, was held to 87,381 faces. The

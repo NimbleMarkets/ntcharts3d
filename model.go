@@ -55,6 +55,7 @@ type Model struct {
 	err                               error
 	wire                              string
 	slow                              int
+	shrink                            float64 // How far software frames are reduced: 0 is not at all.
 }
 
 func New(width, height int, opts ...Option) *Model {
@@ -125,7 +126,7 @@ func (m *Model) SetRenderMode(l RenderMode) tea.Cmd {
 	m.renderMode = l
 	m.requestedRenderMode = l
 	_ = m.resizePicture()
-	m.slow = 0
+	m.slow, m.shrink = 0, 0
 	m.wire = ""
 	m.wake++
 	if l == WebGPU && m.renderer == nil {

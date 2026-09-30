@@ -47,17 +47,70 @@ type tick struct {
 // maxFramePixels bounds the framebuffer's area.
 const maxFramePixels = 4096 * 2160
 
-// frame is what the terminal shows: sized by its cells, and kept small where
-// the picture is drawn in software or shown as glyphs.
+// Software frames are drawn at full size while they are prompt, and smaller
+// while they are not: a frame over softwareSlow is followed by one reduced to
+// take softwareAim, and one under softwareFast by one a half larger.
+const (
+	softwareSlow = 60 * time.Millisecond
+	softwareAim  = 40 * time.Millisecond
+	softwareFast = 20 * time.Millisecond
+)
+
+// smallest is the scale at which the plot fits 320 by 200 pixels. Glyphs
+// show two pixels to a cell, and are never given more. Software frames are
+// never reduced further.
+func (m *Model) smallest() float64 {
+	cw, ch := m.pic.CellPixelSize()
+	return math.Min(1, math.Min(320/float64(m.plotWidth()*cw), 200/float64(m.plotHeight()*ch)))
+}
+
+// softwareScale is the scale of the next software frame.
+func (m *Model) softwareScale() float64 {
+	if m.pic.Mode() == picture.PictureGlyph {
+		return m.smallest()
+	}
+	return math.Max(m.smallest(), 1-m.shrink)
+}
+
+// paced sets the size of software frames to come by the time the last took.
+// It reports whether that frame was slow at the smallest size, where there
+// is nothing left to reduce.
+func (m *Model) paced(elapsed time.Duration) bool {
+	scale, smallest := m.softwareScale(), m.smallest()
+	switch {
+	case scale <= smallest:
+		if elapsed < softwareFast && m.pic.Mode() != picture.PictureGlyph && scale < 1 {
+			break
+		}
+		return elapsed > 150*time.Millisecond
+	case elapsed > softwareSlow:
+		// Time goes with area, and area with the square of the scale.
+		m.shrink = 1 - math.Max(smallest, scale*math.Sqrt(float64(softwareAim)/float64(elapsed)))
+		return false
+	case elapsed >= softwareFast || scale >= 1:
+		return false
+	}
+	// Quick enough to be drawn again, larger, even if nothing else changes.
+	m.shrink = 1 - math.Min(1, scale*1.5)
+	m.dirty = true
+	return false
+}
+
+// frame is what the terminal shows: sized by its cells, and reduced where
+// the picture is shown as glyphs or drawn slowly in software.
 func (m *Model) frame() Frame {
 	cw, ch := m.pic.CellPixelSize()
 	plotRows := m.plotHeight()
 	plotCols := m.plotWidth()
 	w, h := plotCols*cw, plotRows*ch
-	if m.renderMode == Software || m.pic.Mode() == picture.PictureGlyph {
-		factor := math.Min(1, math.Min(320/float64(w), 200/float64(h)))
-		w, h = max(1, int(float64(w)*factor)), max(1, int(float64(h)*factor))
+	factor := 1.0
+	switch {
+	case m.pic.Mode() == picture.PictureGlyph:
+		factor = m.smallest()
+	case m.renderMode == Software:
+		factor = m.softwareScale()
 	}
+	w, h = max(1, int(float64(w)*factor)), max(1, int(float64(h)*factor))
 	if w*h > maxFramePixels {
 		factor := math.Sqrt(float64(maxFramePixels) / float64(w*h))
 		w, h = max(1, int(float64(w)*factor)), max(1, int(float64(h)*factor))

@@ -40,7 +40,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.renderMode = v.renderMode
 		m.wire = v.wire
-		if v.renderMode == Software && v.elapsed > 150*time.Millisecond {
+		if v.renderMode == Software && m.paced(v.elapsed) {
 			m.slow++
 		} else {
 			m.slow = 0
