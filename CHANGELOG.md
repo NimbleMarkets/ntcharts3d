@@ -3,7 +3,11 @@
 Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d` are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
-## [0.1.0] - 2026-09-30
+## [0.2.1] - 2026-10-01
+
+- Add `Model.SetBackground` and `Model.Background` to change a chart's background color after creation.
+
+## [0.2.0] - 2026-09-30
 
 ### Added
 
