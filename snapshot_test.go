@@ -235,3 +235,26 @@ func TestMeshLimitIsWhatTheGPUHolds(t *testing.T) {
 		t.Fatal("more indices than the GPU holds were accepted")
 	}
 }
+
+func TestSetBackgroundRepaintsTheScene(t *testing.T) {
+	m := New(80, 24, WithRenderMode(Software), WithBackground(color.RGBA{255, 255, 255, 255}))
+	defer m.Close()
+	m.SetSurface("plane", Surface{NX: 8, NY: 8, Sampler: func(x, y float64) float64 { return 0 }})
+	m.SetAxes(Axes{X: Axis{Hidden: true}, Y: Axis{Hidden: true}, Z: Axis{Hidden: true}})
+	m.SetColorLegendVisible(false)
+	corner := func() color.RGBA {
+		img, _, err := m.Snapshot(120, 120)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return color.RGBAModel.Convert(img.At(0, 0)).(color.RGBA)
+	}
+	if got := corner(); got != (color.RGBA{255, 255, 255, 255}) {
+		t.Fatalf("before: %v", got)
+	}
+	m.SetBackground(color.NRGBA{R: 63, G: 48, B: 128, A: 255})
+	want := color.RGBA{63, 48, 128, 255}
+	if m.Background() != want || corner() != want {
+		t.Fatalf("after: background=%v corner=%v want %v", m.Background(), corner(), want)
+	}
+}

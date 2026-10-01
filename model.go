@@ -93,6 +93,18 @@ func (m *Model) SetCamera(c Camera) tea.Cmd {
 	m.wake++
 	return m.changed(false)
 }
+
+// Background returns the color behind the scene.
+func (m *Model) Background() color.RGBA { return m.background }
+
+// SetBackground changes the color behind the scene and redraws it. It is
+// WithBackground for a chart already made; the color is always opaque.
+func (m *Model) SetBackground(c color.Color) tea.Cmd {
+	m.background = color.RGBAModel.Convert(c).(color.RGBA)
+	m.background.A = 255
+	return m.changed(false)
+}
+
 func (m *Model) SetLight(l Light) tea.Cmd {
 	if !validFloat(l.Direction.X, l.Direction.Y, l.Direction.Z, l.Ambient) {
 		m.err = fmt.Errorf("ntcharts3d: non-finite light")
