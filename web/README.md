@@ -3,7 +3,7 @@
 The site runs the gallery with stock Go or TinyGo. Each build has its own
 `wasm_exec.js`; the compiler selector loads one gallery at a time.
 
-Install [TinyGo 0.42.0](https://tinygo.org/getting-started/install/), then run
+Install [TinyGo 0.43.0](https://tinygo.org/getting-started/install/), then run
 from the repository root:
 
 ```sh
@@ -17,8 +17,10 @@ Open http://localhost:8768. To use a TinyGo executable outside PATH:
 task build-wasm-site TINYGO=/path/to/tinygo
 ```
 
-The build task selects Go 1.26.8 for both compilers. TinyGo 0.42.0 hit
-standard-library map errors with Go 1.27.1 in this project. The WASM gallery
+The build task selects Go 1.26.8 for both compilers. With Go 1.27.1, TinyGo
+0.43.0 fails to compile `hash/maphash`, which ultraviolet imports: Go 1.27's
+map runtime uses `internal/abi` names that TinyGo's copy lacks (tinygo#5684).
+The WASM gallery
 uses `tea.WithoutSignalHandler()` for TinyGo's browser signal limitation.
 The TinyGo build also selects `-gc=boehm`: its default collector stalled in
 `gcBlock.findHead` during gallery rendering. Disabling signals alone did not
@@ -52,6 +54,11 @@ the `/ntcharts3d/` prefix. Browser checks confirmed shared-memory commands,
 image registry reads, and cleanup with no browser errors.
 With Boehm, TinyGo displayed 144 shared-memory frames in a 10-second browser
 check and responded to chart switching, projection changes, and resizing.
+
+TinyGo 0.43.0 with Boehm rendered every gallery chart with WebGPU and
+`Kitty/shm` in headless Chrome, switching charts and projection over a
+20-second check with no console errors. Chart switches log a few ghostty
+`kitty_gfx` response warnings with both compilers.
 
 `task ci`, `task test-gpu`, and `actionlint` passed. Hosted GitHub Actions and
 Pages deployment have not run yet.

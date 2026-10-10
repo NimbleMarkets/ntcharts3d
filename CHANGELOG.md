@@ -3,6 +3,11 @@
 Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d` are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
+## [Unreleased]
+
+- The demo site builds with TinyGo 0.43.0, which fixes garbage-collection
+  roots lost across loop phis and aggregate escapes.
+
 ## [0.2.1] - 2026-10-01
 
 - Add `Model.SetBackground` and `Model.Background` to change a chart's background color after creation.
