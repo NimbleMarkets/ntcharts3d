@@ -1,6 +1,16 @@
-# ntcharts3d
+# ntcharts3d - Nimble Terminal 3D Charts
+
+<p>
+    <a href="https://github.com/NimbleMarkets/ntcharts3d/actions/workflows/go.yml"><img src="https://github.com/NimbleMarkets/ntcharts3d/actions/workflows/go.yml/badge.svg" alt="Build Status"></a>
+    <a href="https://github.com/NimbleMarkets/ntcharts3d/actions/workflows/pages.yml"><img src="https://github.com/NimbleMarkets/ntcharts3d/actions/workflows/pages.yml/badge.svg" alt="Deploy to GitHub Pages Status"></a>
+    <a href="https://github.com/NimbleMarkets/ntcharts3d/tags"><img src="https://img.shields.io/github/tag/NimbleMarkets/ntcharts3d.svg" alt="Latest Release"></a>
+    <a href="https://pkg.go.dev/github.com/NimbleMarkets/ntcharts3d?tab=doc"><img src="https://godoc.org/github.com/NimbleMarkets/ntcharts3d?status.svg" alt="GoDoc"></a>
+    <a href="https://github.com/NimbleMarkets/ntcharts3d/blob/main/CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg"  alt="Code Of Conduct"></a>
+</p>
 
 3D charts for Bubble Tea terminals and go-booba browser applications.
+
+<p align="center"><a href="https://nimblemarkets.github.io/ntcharts3d"/><b>Live Demo</b></a> (<a href="./examples/gallery/main.go">source</a>)<br><a href="https://nimblemarkets.github.io/ntcharts3d"/><img src="examples/gallery/demo.gif" alt="gallery demo" width="75%"/></a></p>
 
 ```go
 import "github.com/NimbleMarkets/ntcharts3d"
