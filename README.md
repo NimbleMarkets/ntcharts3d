@@ -23,10 +23,10 @@ axis labels with optional back-plane grids.
 Rendering uses go-gpuimage v0.1.0, with software and wireframe fallbacks.
 ntcharts handles terminal images and glyph output.
 
-The initial release is **v0.1.0**. Install it with:
+Install **v0.2.2** with:
 
 ```sh
-go get github.com/NimbleMarkets/ntcharts3d@v0.1.0
+go get github.com/NimbleMarkets/ntcharts3d@v0.2.2
 ```
 
 See the [changelog](CHANGELOG.md), [API guide](API.md),
@@ -81,15 +81,18 @@ The Pages gallery uses Kitty shared memory with the bundled terminal assets.
 
 ## Dependencies
 
-The library requires Go 1.26; the examples require Go 1.26.8. The library and
-both examples pin ntcharts to upstream
-commit [`4777228ed363`](https://github.com/NimbleMarkets/ntcharts/commit/4777228ed363ab15755715840089133a1a362c83),
-which includes the Kitty transport APIs. Go records this unreleased commit as
-`v2.3.1-0.20260927013859-4777228ed363`. No local ntcharts checkout is needed.
+The library and both examples require Go 1.26.8 and pin NTCharts v2.8.0,
+which includes the Kitty transport APIs. No local NTCharts checkout is needed.
 
 The gallery's `ntcharts3d => ../..` replacement uses this repository directly.
 Both examples use go-booba v0.7.0 and its Bubble Tea WASM fork at `1b36865b418a`.
 The bundled ghostty-web assets support browser shared memory.
+
+As of 2026-10-12, the latest go-booba release, v0.9.1, does not include the
+ghostty-web graphics pin introduced by
+[`5b8e62a`](https://github.com/NimbleMarkets/go-booba/commit/5b8e62a34a21b24aa937d27fce3057410338e959).
+The examples remain on v0.7.0 until a release includes that pin; then update
+both modules and regenerate their browser assets with `task web-assets`.
 
 ## Ownership
 

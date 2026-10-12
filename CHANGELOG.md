@@ -1,9 +1,11 @@
 # `ntcharts3d` CHANGELOG
 
-Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d` are recorded here. Versions follow Semantic
+Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d) are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
 ## [Unreleased]
+
+## [0.2.2] - 2026-10-12
 
 - Encode direct Kitty frames as zlib-compressed pixels by default, avoiding
   PNG filter work during camera movement. `WithKittyFormat` selects PNG or raw
@@ -11,6 +13,8 @@ Versioning; the API may change during the v0.x series.
 
 - The demo site builds with TinyGo 0.43.0, which fixes garbage-collection
   roots lost across loop phis and aggregate escapes.
+
+- The library and both examples require Go 1.26.8 and pin NTCharts v2.8.0.
 
 ## [0.2.1] - 2026-10-01
 
@@ -74,5 +78,8 @@ applications.
 - Large scenes may be subsampled in fallback modes. See the
   [API limits](API.md#limits-and-fallback) for details.
 
-[Unreleased]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/NimbleMarkets/ntcharts3d/releases/tag/v0.2.2
+[0.2.1]: https://github.com/NimbleMarkets/ntcharts3d/releases/tag/v0.2.1
+[0.2.0]: https://github.com/NimbleMarkets/ntcharts3d/releases/tag/v0.2.0
 [0.1.0]: https://github.com/NimbleMarkets/ntcharts3d/releases/tag/v0.1.0

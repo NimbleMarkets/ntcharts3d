@@ -1,8 +1,8 @@
 # Transport diagnostic
 
-Uses released `go-gpuimage v0.1.0` and ntcharts transport commit `4777228`,
-pinned as `v2.3.1-0.20260927013859-4777228ed363`. No local module replacements
-are needed for these libraries. The existing Bubble Tea browser fork remains.
+Uses released `go-gpuimage v0.1.0` and `NTCharts v2.8.0`, with Go 1.26.8.
+No local module replacements are needed for these libraries. The existing
+Bubble Tea browser fork remains.
 
 This standalone diagnostic measures GPU rendering/readback separately from
 terminal transport. It does not import the ntcharts3d chart implementation,
@@ -151,7 +151,10 @@ Shared memory removes PNG encoding and decoding from that browser frame budget.
 
 ## Remaining integration
 
-- Replace the ntcharts pseudo-version with a release tag once available.
+- Update both examples from go-booba v0.7.0 and regenerate browser assets when
+  a release includes the ghostty-web graphics pin from
+  [`5b8e62a`](https://github.com/NimbleMarkets/go-booba/commit/5b8e62a34a21b24aa937d27fce3057410338e959).
+  As of 2026-10-12, the latest release, v0.9.1, does not include it.
 - Verify shared-memory display in a local Linux Kitty-capable terminal; Linux lifecycle tests now pass on dwarfspark.
 
 Native shared memory remains opt-in. Automatically selecting it would require
