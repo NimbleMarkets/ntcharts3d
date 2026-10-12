@@ -7,8 +7,8 @@ import (
 	"math"
 
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/canvas"
 	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/ntcanvas"
 )
 
 func wireRender(f Frame, cols, rows int) string {

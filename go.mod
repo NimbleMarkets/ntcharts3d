@@ -41,4 +41,9 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 )
 
-require github.com/NimbleMarkets/ntcharts/v2 v2.8.0
+require (
+	github.com/NimbleMarkets/ntcharts/v2 v2.8.0
+	nimbleterminal.dev/ntcanvas v0.0.0
+)
+
+replace nimbleterminal.dev/ntcanvas => ../ntcanvas
