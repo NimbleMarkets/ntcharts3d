@@ -14,8 +14,6 @@ Versioning; the API may change during the v0.x series.
 - The demo site builds with TinyGo 0.43.0, which fixes garbage-collection
   roots lost across loop phis and aggregate escapes.
 
-- The library and both examples require Go 1.26.8 and pin NTCharts v2.8.0.
-
 ## [0.2.1] - 2026-10-01
 
 - Add `Model.SetBackground` and `Model.Background` to change a chart's background color after creation.
