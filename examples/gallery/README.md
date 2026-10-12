@@ -18,7 +18,7 @@ See the [dependency pins](../../README.md#dependencies).
 
 From the repository root, use `task gallery -- <flags>` to run the gallery.
 `task build-web` prepares both browser examples; `task serve-gallery` serves
-this one. go-booba v0.9.1 bundles the required terminal assets.
+this one. go-booba v0.9.2 bundles the required terminal assets.
 
 ## Native
 
@@ -98,7 +98,7 @@ go tool booba-assets web/
 python3 -m http.server 8766 --bind 127.0.0.1 -d web
 ```
 
-Open http://127.0.0.1:8766. This build uses go-booba v0.9.1 and its pinned
+Open http://127.0.0.1:8766. This build uses go-booba v0.9.2 and its pinned
 Bubble Tea WASM fork. The header shows `Kitty/shm` when shared memory is active.
 
 ## Rendering and transport

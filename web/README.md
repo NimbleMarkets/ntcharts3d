@@ -31,7 +31,7 @@ HTML, styles, and scripts in `web/` are source files. Generated files are ignore
 by Git. Relative asset URLs work at `/` and under `/ntcharts3d/`.
 
 The site uses Kitty shared memory and the terminal assets bundled with go-booba
-v0.9.1. Terminal initialization creates the image registry before Go starts.
+v0.9.2. Terminal initialization creates the image registry before Go starts.
 The chart header reports `Kitty/shm` when frames use shared memory. No local
 ghostty-web checkout or asset overlay is needed.
 
@@ -61,4 +61,11 @@ TinyGo 0.43.0 with Boehm rendered every gallery chart with WebGPU and
 `kitty_gfx` response warnings with both compilers.
 
 `task ci`, `task test-gpu`, and `actionlint` passed. Hosted GitHub Actions and
-Pages deployment have not run yet.
+Pages deployment passed for v0.2.2.
+
+On 2026-10-12, fresh Go 1.26.8 and TinyGo 0.43.0 (Boehm) builds using
+go-booba v0.9.2 were checked in Safari 27.0.1. Both used `WebGPU` and
+`Kitty/shm`, animated without input, redrew after drag-orbit, and switched
+from scatter to surface without grey placeholder cells. `GOWORK=off task ci`
+and `GOWORK=off task build-wasm-site` passed; the generated assets matched
+the booba v0.9.2 bundle byte for byte.

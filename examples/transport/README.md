@@ -23,7 +23,7 @@ Application FPS measures frame submission, not the terminal's display refresh.
 
 From the repository root, use `task transport -- <flags>` to run this example.
 `task build-web` prepares both browser examples; `task serve-transport` serves
-this one. go-booba v0.9.1 bundles the required terminal assets.
+this one. go-booba v0.9.2 bundles the required terminal assets.
 
 This example is its own Go module. The go-booba pin sets
 `TERM_PROGRAM=ghostty` so picture's Kitty probe runs in the browser.
@@ -45,7 +45,7 @@ python3 -m http.server -d web 8765   # then open http://localhost:8765/
 ```
 
 The browser build needs the pinned Bubble Tea fork `replace` already in
-`go.mod` from go-booba v0.9.1.
+`go.mod` from go-booba v0.9.2.
 
 Refresh the page after rebuilding, then press `m` to enable shared memory.
 The header should show `shm`; `m` again returns to the selected direct format.
@@ -145,16 +145,12 @@ loop ran at all:
   re-transmitted under the same id lands at the same address, so the gate
   dropped every frame and the sphere only repainted where a drag dirtied
   cells. The fix (renderer invalidation on any written chunk carrying
-  `ESC _ G`) is in the ghostty-web fork; go-booba needs a release with it.
+  `ESC _ G`) is included in the terminal assets bundled with go-booba v0.9.2.
 
 Shared memory removes PNG encoding and decoding from that browser frame budget.
 
 ## Remaining integration
 
-- Update both examples from go-booba v0.9.1 and regenerate browser assets when
-  a release includes the ghostty-web graphics pin from
-  [`5b8e62a`](https://github.com/NimbleMarkets/go-booba/commit/5b8e62a34a21b24aa937d27fce3057410338e959).
-  As of 2026-10-12, the latest release, v0.9.1, does not include it.
 - Verify shared-memory display in a local Linux Kitty-capable terminal; Linux lifecycle tests now pass on dwarfspark.
 
 Native shared memory remains opt-in. Automatically selecting it would require

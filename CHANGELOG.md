@@ -5,6 +5,9 @@ Versioning; the API may change during the v0.x series.
 
 ## [Unreleased]
 
+- Both browser examples use go-booba v0.9.2, whose bundled ghostty-web fixes
+  restore animation in Safari and prevent grey placeholder cells while dragging.
+
 ## [0.2.2] - 2026-10-12
 
 - Encode direct Kitty frames as zlib-compressed pixels by default, avoiding

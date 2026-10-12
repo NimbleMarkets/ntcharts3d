@@ -70,7 +70,7 @@ repository root. `task` builds the library and native examples into `bin/`.
 | `task clean` | Remove compiled outputs, keeping browser assets |
 
 Builds and CI check module files without updating them.
-`task build-web` generates the browser assets bundled with go-booba v0.9.1,
+`task build-web` generates the browser assets bundled with go-booba v0.9.2,
 including Kitty shared-memory support. No local terminal asset overlay is needed.
 
 GitHub Actions runs `task ci` on Linux and macOS for pushes and pull requests.
@@ -85,14 +85,12 @@ The library and both examples require Go 1.26.8 and pin NTCharts v2.8.0,
 which includes the Kitty transport APIs. No local NTCharts checkout is needed.
 
 The gallery's `ntcharts3d => ../..` replacement uses this repository directly.
-Both examples use go-booba v0.9.1 and its Bubble Tea WASM fork at `c397c32a5074`.
+Both examples use go-booba v0.9.2 and its Bubble Tea WASM fork at `c397c32a5074`.
 The bundled ghostty-web assets support browser shared memory.
 
-As of 2026-10-12, the latest go-booba release, v0.9.1, does not include the
-ghostty-web graphics pin introduced by
-[`5b8e62a`](https://github.com/NimbleMarkets/go-booba/commit/5b8e62a34a21b24aa937d27fce3057410338e959).
-The examples use v0.9.1; when a release includes that pin, update
-both modules and regenerate their browser assets with `task web-assets`.
+The bundled ghostty-web graphics fixes restore frame updates in Safari and
+prevent grey placeholder cells while dragging. Regenerate browser assets
+with `task web-assets` after changing the booba pin.
 
 ## Ownership
 
