@@ -260,3 +260,75 @@ func TestMousePickAndOrbit(t *testing.T) {
 		t.Fatal("drag emitted click")
 	}
 }
+
+func TestKittyEncoding(t *testing.T) {
+	old := picture.KittySupported()
+	picture.ForceKittyCapability(picture.KittyCapabilitySupported)
+	t.Cleanup(func() { picture.ForceKittyCapability(old) })
+
+	for _, medium := range []picture.KittyMedium{picture.KittyMediumDirect, picture.KittyMediumSharedMemory} {
+		for _, tc := range []struct {
+			name   string
+			format picture.KittyFormat
+			opts   []Option
+		}{
+			{"default", picture.KittyFormatZlib, nil},
+			{"zlib", picture.KittyFormatZlib, []Option{WithKittyFormat(picture.KittyFormatZlib)}},
+			{"png", picture.KittyFormatPNG, []Option{WithKittyFormat(picture.KittyFormatPNG)}},
+			{"rgba", picture.KittyFormatRGBA, []Option{WithKittyFormat(picture.KittyFormatRGBA)}},
+		} {
+			t.Run(medium.String()+"/"+tc.name, func(t *testing.T) {
+				opts := append([]Option{WithRenderMode(Software), WithKittyMedium(medium)}, tc.opts...)
+				m := New(4, 4, opts...)
+				defer m.Close()
+				if got := m.pic.KittyFormat(); got != tc.format {
+					t.Fatalf("format = %v, want %v", got, tc.format)
+				}
+				if got := m.pic.KittyMedium(); got != medium {
+					t.Fatalf("medium = %v, want %v", got, medium)
+				}
+				m.togglePicture()
+				img := image.NewRGBA(image.Rect(0, 0, 8, 16))
+				for i := 0; i < len(img.Pix); i += 4 {
+					copy(img.Pix[i:i+4], []byte{20, 40, 60, 255})
+				}
+				msg := m.present(img, img.Bounds())()
+				e, ok := msg.(encoded)
+				if !ok {
+					t.Fatalf("expected encoded frame, got %T", msg)
+				}
+				frame, ok := e.msg.(picture.KittyFrameMsg)
+				// No shared-memory support probe has been answered in this test
+				// process, so a requested shared medium must fall back to direct.
+				if !ok || frame.Medium != picture.KittyMediumDirect || frame.Format != tc.format || frame.APC == "" {
+					t.Fatalf("unexpected frame: %+v", frame)
+				}
+				_, apc, found := strings.Cut(frame.APC, "\x1b_G")
+				if !found {
+					t.Fatal("frame missing Kitty APC")
+				}
+				header, _, _ := strings.Cut(apc, ";")
+				want := "f=100"
+				if tc.format == picture.KittyFormatZlib {
+					want = "f=24"
+					if !strings.Contains(header, "o=z") {
+						t.Fatal("zlib frame missing compression flag")
+					}
+				} else if tc.format == picture.KittyFormatRGBA {
+					// RGBA (f=32) is the protocol default and may be omitted.
+					want = "s=32,v=32"
+					if strings.Contains(header, "f=") || strings.Contains(header, "o=z") {
+						t.Fatalf("unexpected raw RGBA header: %q", header)
+					}
+				}
+				if !strings.Contains(header, want) || strings.Contains(header, "t=s") {
+					t.Fatalf("unexpected transport header: %q", header)
+				}
+				m.Update(e)
+				if m.transport != tc.format.String() {
+					t.Fatalf("transport status = %q, want %q", m.transport, tc.format.String())
+				}
+			})
+		}
+	}
+}

@@ -5,6 +5,10 @@ Versioning; the API may change during the v0.x series.
 
 ## [Unreleased]
 
+- Encode direct Kitty frames as zlib-compressed pixels by default, avoiding
+  PNG filter work during camera movement. `WithKittyFormat` selects PNG or raw
+  pixels when needed; shared-memory transport is unchanged.
+
 - The demo site builds with TinyGo 0.43.0, which fixes garbage-collection
   roots lost across loop phis and aggregate escapes.
 

@@ -7,7 +7,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/NimbleMarkets/go-booba v0.7.0
 	github.com/NimbleMarkets/go-gpuimage v0.1.0
-	github.com/NimbleMarkets/ntcharts/v2 v2.3.1-0.20260927013859-4777228ed363
+	github.com/NimbleMarkets/ntcharts/v2 v2.8.0
 	github.com/charmbracelet/ultraviolet v0.0.0-20260928045949-bbf040aedf25
 	github.com/charmbracelet/x/ansi v0.11.8
 	github.com/gogpu/gputypes v0.8.0

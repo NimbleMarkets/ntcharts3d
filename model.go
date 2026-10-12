@@ -43,6 +43,7 @@ type Model struct {
 	requestedRenderMode               RenderMode
 	width, height, kittyID, maxPoints int
 	medium                            picture.KittyMedium
+	kittyFormat                       picture.KittyFormat
 	id, seq, revision, wake           uint64
 	started, busy, dirty, closed      bool
 	zones                             *zone.Manager
@@ -59,7 +60,19 @@ type Model struct {
 }
 
 func New(width, height int, opts ...Option) *Model {
-	m := &Model{camera: DefaultCamera(), light: Light{math3d.Vec3{X: 1, Y: -1, Z: 2}.Normalize(), .3}, colors: defaultPalette(), background: color.RGBA{235, 238, 242, 255}, maxPoints: MaxPoints, id: nextID.Add(1), revision: 1, dirty: true, renderer: &gpuRenderer{}, colorLegendVisible: true}
+	m := &Model{
+		camera:             DefaultCamera(),
+		light:              Light{math3d.Vec3{X: 1, Y: -1, Z: 2}.Normalize(), .3},
+		colors:             defaultPalette(),
+		background:         color.RGBA{235, 238, 242, 255},
+		maxPoints:          MaxPoints,
+		id:                 nextID.Add(1),
+		revision:           1,
+		dirty:              true,
+		kittyFormat:        picture.KittyFormatZlib,
+		renderer:           &gpuRenderer{},
+		colorLegendVisible: true,
+	}
 	for _, o := range opts {
 		o(m)
 	}
@@ -71,7 +84,16 @@ func New(width, height int, opts ...Option) *Model {
 		m.ownZones = true
 	}
 	m.zoneID = m.zones.NewPrefix() + "ntcharts3d"
-	m.pic = picture.NewWithConfig(picture.Config{KittyZ: -1, Fit: picture.FitFill, Background: m.background, KittyID: m.kittyID, KittyMedium: m.medium, CellPixelWidth: 8, CellPixelHeight: 16})
+	m.pic = picture.NewWithConfig(picture.Config{
+		KittyZ:          -1,
+		Fit:             picture.FitFill,
+		Background:      m.background,
+		KittyID:         m.kittyID,
+		KittyMedium:     m.medium,
+		KittyFormat:     m.kittyFormat,
+		CellPixelWidth:  8,
+		CellPixelHeight: 16,
+	})
 	m.SetSize(width, height)
 	return m
 }

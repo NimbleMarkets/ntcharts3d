@@ -450,3 +450,12 @@ hardware adapter. Do not use `-race` with native GPU tests across the FFI bounda
 
 See the [gallery](examples/gallery/README.md) for native and browser commands,
 and the [Go/TinyGo demo site](web/README.md) for GitHub Pages builds.
+
+### Kitty frame encoding
+
+Direct Kitty frames default to `picture.KittyFormatZlib`, which avoids PNG's
+per-row filter trials during interactive camera movement. `WithKittyFormat`
+selects `KittyFormatPNG` or `KittyFormatRGBA` instead. With
+`WithKittyMedium(picture.KittyMediumSharedMemory)`, supported terminals receive
+raw pixels through shared buffers; the selected encoding is the fallback when
+shared memory is unavailable.

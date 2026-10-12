@@ -35,6 +35,13 @@ func WithRenderMode(l RenderMode) Option {
 func WithRenderer(r Renderer) Option                    { return func(m *Model) { m.renderer = r } }
 func WithKittyMedium(medium picture.KittyMedium) Option { return func(m *Model) { m.medium = medium } }
 
+// WithKittyFormat chooses the direct transport encoding. Zlib is the default;
+// shared-memory frames use raw pixels regardless of this setting, and use the
+// selected encoding when falling back to direct transport.
+func WithKittyFormat(format picture.KittyFormat) Option {
+	return func(m *Model) { m.kittyFormat = format }
+}
+
 // WithColorLegend sets the legend title. An empty title uses series names,
 // or "value" for a shared domain.
 func WithColorLegend(title string) Option { return func(m *Model) { m.colorLegendTitle = title } }
