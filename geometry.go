@@ -32,16 +32,6 @@ type Geometry struct {
 	HasColorRange bool
 }
 
-// MaxMeshIndices is the most indices a series' mesh may have, three to a
-// triangle. The GPU renderer keeps a 48-byte record for each index, vertices
-// shared or not, in a storage buffer; 128 MiB is the largest binding that
-// WebGPU promises, and so the largest mesh that can be drawn wherever WebGPU
-// can. MaxMeshTriangles is the same limit, counted in faces.
-const (
-	MaxMeshTriangles = (128 << 20) / 48 / 3
-	MaxMeshIndices   = 3 * MaxMeshTriangles
-)
-
 func validateGeometry(g Geometry) error {
 	if g.HasColorRange && (!validFloat(g.ColorMin, g.ColorMax) || g.ColorMax < g.ColorMin) {
 		return fmt.Errorf("ntcharts3d: invalid color range")

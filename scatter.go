@@ -11,7 +11,6 @@ import (
 	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
-const MaxPoints = 500_000
 const MaxPickPoints = 200_000
 
 // Scatter holds X/Y/Z columns of equal length. SetScatter copies all slices.

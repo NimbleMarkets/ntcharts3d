@@ -407,7 +407,7 @@ must not be called while another goroutine changes the chart.
 
 | Render mode | Limits |
 | --- | --- |
-| WebGPU | 500,000 scatter points total; `WithMaxPoints` can lower this. Surface dimensions 2–512; bar grids up to 512×512. Custom meshes up to `MaxMeshTriangles` (932,067) per series, with vertices shared or not. Up to 100,000 arrows and 262,144 line segments per series. Framebuffer area capped at 4096×2160 pixels. |
+| WebGPU | 500,000 scatter points total; `WithMaxPoints` can lower this. Surface dimensions 2–512; bar grids up to 512×512. Custom meshes up to `nt3d.MaxMeshTriangles` (932,067) per series, with vertices shared or not. Up to 100,000 arrows and 262,144 line segments per series. Framebuffer area capped at 4096×2160 pixels. |
 | Software | Full Kitty raster while prompt, adaptively reduced toward a 320×200 bounding box. All triangles and bars; interactive point, line, and arrow sampling is owned by nt3d. Glyph raster is one pixel wide and two pixels high per cell. |
 | Wireframe | nt3d terminal wireframe with depth-aware geometry, chart axis/hover strokes, and cell labels. |
 
@@ -487,3 +487,7 @@ and picking semantics remain here. Math types come directly from `nt3d/math`;
 update old `math3d` imports and qualifiers to `nt3dmath`. Chart primitive types
 remain aliases to nt3d; use keyed primitive literals. The chart's
 opaque `NewTexture` contract is retained over immutable engine texture storage.
+
+Geometry limits are provided directly by `nimbleterminal.dev/nt3d`: use
+`nt3d.MaxPoints`, `nt3d.MaxVectors`, `nt3d.MaxMeshTriangles`, and
+`nt3d.MaxMeshIndices`. The corresponding ntcharts3d constants have been removed.

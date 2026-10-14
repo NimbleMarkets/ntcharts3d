@@ -6,6 +6,7 @@ import (
 	"image/color"
 
 	zone "github.com/lrstanley/bubblezone/v2"
+	"nimbleterminal.dev/nt3d"
 	picture "nimbleterminal.dev/ntpicture"
 )
 
@@ -27,7 +28,9 @@ func WithBackground(c color.Color) Option {
 	return func(m *Model) { m.background = color.RGBAModel.Convert(c).(color.RGBA); m.background.A = 255 }
 }
 
-func WithMaxPoints(n int) Option { return func(m *Model) { m.maxPoints = max(1, min(MaxPoints, n)) } }
+func WithMaxPoints(n int) Option {
+	return func(m *Model) { m.maxPoints = max(1, min(nt3d.MaxPoints, n)) }
+}
 
 // WithRenderMode selects the initial requested and active rendering mode.
 // WebGPU is the default; invalid modes are ignored.

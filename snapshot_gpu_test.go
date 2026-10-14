@@ -7,6 +7,8 @@ package ntcharts3d
 import (
 	"image"
 	"testing"
+
+	"nimbleterminal.dev/nt3d"
 )
 
 func TestGPUSnapshot(t *testing.T) {
@@ -51,7 +53,7 @@ func (m mesh) Geometry(Palette) (Geometry, error) { return m.geometry, nil }
 func TestGPUDrawsTheLargestMesh(t *testing.T) {
 	m := New(80, 24)
 	defer m.Close()
-	m.SetSeries(mesh{triangles(MaxMeshTriangles)})
+	m.SetSeries(mesh{triangles(nt3d.MaxMeshTriangles)})
 	if m.Err() != nil {
 		t.Fatal(m.Err())
 	}

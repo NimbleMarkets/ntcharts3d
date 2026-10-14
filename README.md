@@ -122,7 +122,9 @@ chart viewport behavior without coupling the generic widget to chart metadata.
 
 Use `nimbleterminal.dev/nt3d/math` (package `nt3dmath`) directly for `Vec3`,
 `Mat4`, `Ray`, and `AABB`; the local `math3d` package has been removed. Chart
-primitive types still forward to engine types. Transport options now use
+primitive types still forward to engine types. Use nt3d directly for
+`MaxPoints`, `MaxVectors`, `MaxMeshTriangles`, and `MaxMeshIndices`; the chart
+exports have been removed. Transport options now use
 `nimbleterminal.dev/ntpicture`. Replace `WithKittyID` with
 `WithImageIDAllocator`; share `WithTerminalSession` between charts on one
 connection. Execute `Dispose()` before quitting, then `Close()` after the event

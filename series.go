@@ -8,6 +8,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/nt3d"
 	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
@@ -30,8 +31,8 @@ type series struct {
 }
 
 func validColumns(n int, optional ...int) error {
-	if n < 1 || n > MaxPoints {
-		return fmt.Errorf("ntcharts3d: datum count must be 1..%d", MaxPoints)
+	if n < 1 || n > nt3d.MaxPoints {
+		return fmt.Errorf("ntcharts3d: datum count must be 1..%d", nt3d.MaxPoints)
 	}
 	for _, v := range optional {
 		if v != 0 && v != n {

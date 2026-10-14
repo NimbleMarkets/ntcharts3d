@@ -10,6 +10,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	zone "github.com/lrstanley/bubblezone/v2"
+	"nimbleterminal.dev/nt3d"
 	nt3dmath "nimbleterminal.dev/nt3d/math"
 	picture "nimbleterminal.dev/ntpicture"
 )
@@ -68,7 +69,7 @@ func New(width, height int, opts ...Option) *Model {
 		light:              Light{nt3dmath.Vec3{X: 1, Y: -1, Z: 2}.Normalize(), .3},
 		colors:             defaultPalette(),
 		background:         color.RGBA{235, 238, 242, 255},
-		maxPoints:          MaxPoints,
+		maxPoints:          nt3d.MaxPoints,
 		id:                 nextID.Add(1),
 		revision:           1,
 		dirty:              true,

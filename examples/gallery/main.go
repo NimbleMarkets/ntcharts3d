@@ -16,6 +16,7 @@ import (
 	"github.com/NimbleMarkets/ntcharts3d"
 	"github.com/aquilax/go-perlin"
 	zone "github.com/lrstanley/bubblezone/v2"
+	"nimbleterminal.dev/nt3d"
 	nt3dmath "nimbleterminal.dev/nt3d/math"
 	picture "nimbleterminal.dev/ntpicture"
 )
@@ -190,7 +191,7 @@ func run() error {
 	duration := flag.Duration("duration", 0, "quit automatically after duration")
 	rotate := flag.Bool("rotate", true, "initial auto-rotation")
 	flag.Parse()
-	if *points < 1 || *points > ntcharts3d.MaxPoints || *tab < 1 || *tab > 5 || *duration < 0 {
+	if *points < 1 || *points > nt3d.MaxPoints || *tab < 1 || *tab > 5 || *duration < 0 {
 		return fmt.Errorf("invalid points, tab, or duration")
 	}
 	l := ntcharts3d.WebGPU

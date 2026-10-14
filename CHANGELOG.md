@@ -5,6 +5,9 @@ Versioning; the API may change during the v0.x series.
 
 ## [Unreleased]
 
+- Remove chart exports of `MaxPoints`, `MaxVectors`, `MaxMeshTriangles`, and
+  `MaxMeshIndices`; use the constants from `nimbleterminal.dev/nt3d` directly.
+
 - Remove the local `math3d` package. Chart APIs, examples, and tests use
   `nimbleterminal.dev/nt3d/math` (`nt3dmath`) directly.
 

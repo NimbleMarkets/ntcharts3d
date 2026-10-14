@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"testing"
 
+	"nimbleterminal.dev/nt3d"
 	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
@@ -207,27 +208,19 @@ func triangles(n int) Geometry {
 	return g
 }
 
-func TestMeshLimitIsWhatTheGPUHolds(t *testing.T) {
-	// Each index becomes 48 bytes of a storage buffer, and 128 MiB is the
-	// largest binding that WebGPU promises.
-	if MaxMeshIndices%3 != 0 || MaxMeshIndices*48 > 128<<20 || (MaxMeshIndices+3)*48 <= 128<<20 {
-		t.Fatalf("MaxMeshIndices = %d", MaxMeshIndices)
-	}
-	if MaxMeshTriangles != MaxMeshIndices/3 || MaxMeshTriangles < 900000 {
-		t.Fatalf("MaxMeshTriangles = %d", MaxMeshTriangles)
-	}
+func TestMeshValidationUsesEngineLimits(t *testing.T) {
 	// A mesh may give every face vertices of its own.
-	if err := validateGeometry(triangles(MaxMeshTriangles)); err != nil {
+	if err := validateGeometry(triangles(nt3d.MaxMeshTriangles)); err != nil {
 		t.Fatalf("a mesh at the limit: %v", err)
 	}
-	over := triangles(MaxMeshTriangles + 1)
+	over := triangles(nt3d.MaxMeshTriangles + 1)
 	if err := validateGeometry(over); err == nil {
 		t.Fatal("a mesh over the limit was accepted")
 	}
 	// The limit is on what is drawn: vertices shared by many faces do not
 	// make room for more faces.
 	shared := triangles(1)
-	for len(shared.Indices) <= MaxMeshIndices {
+	for len(shared.Indices) <= nt3d.MaxMeshIndices {
 		shared.Indices = append(shared.Indices, 0, 1, 2)
 	}
 	if err := validateGeometry(shared); err == nil {

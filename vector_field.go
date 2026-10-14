@@ -12,8 +12,6 @@ import (
 	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
-const MaxVectors = 100_000
-
 // Arrow is an unlit, screen-facing shaft and triangular head between two world
 // positions. Width is in render pixels (zero defaults to 1). HeadSize is the
 // head length in pixels, 0..64; zero draws only the shaft. Short projections
@@ -61,8 +59,8 @@ func (s vectorSeries) GeometryWithColorDomain(p Palette, lo, hi float32) (Geomet
 func (s vectorSeries) geometry(p Palette, domain *[2]float32) (Geometry, error) {
 	d := s.data
 	n := len(d.Origins)
-	if n > MaxVectors || len(d.Vectors) != n {
-		return Geometry{}, fmt.Errorf("ntcharts3d: invalid vector count (maximum %d)", MaxVectors)
+	if n > nt3d.MaxVectors || len(d.Vectors) != n {
+		return Geometry{}, fmt.Errorf("ntcharts3d: invalid vector count (maximum %d)", nt3d.MaxVectors)
 	}
 	if err := validColumns(n, len(d.Color), len(d.ColorValue), len(d.Labels)); err != nil {
 		return Geometry{}, err
