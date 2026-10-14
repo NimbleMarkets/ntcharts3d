@@ -101,7 +101,9 @@ func (m *Model) plotTransform() plotTransform {
 	var extent [3]float64
 	for i := range 3 {
 		center[i] = float32((float64(lo[i]) + float64(hi[i])) * .5)
-		extent[i] = math.Max(.001, float64(hi[i])-float64(lo[i]))
+		// A relative floor near one float32 ulp keeps center*scale finite on
+		// single-valued axes far from the origin.
+		extent[i] = math.Max(math.Max(.001, math.Abs(float64(center[i]))*1e-7), float64(hi[i])-float64(lo[i]))
 	}
 	longest := max(extent[0], extent[1], extent[2])
 	for i := range 3 {

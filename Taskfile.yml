@@ -72,6 +72,12 @@ tasks:
       - go test -mod=readonly -tags webgpu . -run TestGPU -count=1 -v
       - NTCHARTS3D_TRANSPORT_GPU_TEST=1 go -C examples/transport test -mod=readonly . -run TestSceneRendersOpaqueAnimatedFrames -count=1 -v
 
+  fuzz:
+    desc: Run each fuzz target in turn; set FUZZTIME (default 30s)
+    cmds:
+      - for: [FuzzNumericTicks, FuzzDisplayText, FuzzPaletteAt, FuzzClip, FuzzModelRender]
+        cmd: go test -mod=readonly -run '^$' -fuzz '^{{.ITEM}}$' -fuzztime {{.FUZZTIME | default "30s"}} .
+
   vet:
     desc: Run go vet in all modules
     cmds:

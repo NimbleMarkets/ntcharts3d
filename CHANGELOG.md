@@ -5,6 +5,10 @@ Versioning; the API may change during the v0.x series.
 
 ## [Unreleased]
 
+- Add fuzz tests for ticks, label text, palettes, clipping, and model rendering
+  (`task fuzz`). Fix a non-finite plot transform when every datum shares an
+  axis value beyond ~1.7e35.
+
 - Add a multi-chart demo sharing one TerminalSession, with independent controls
   and coordinated cleanup; document per-chart discovery when no session is supplied.
 
