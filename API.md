@@ -1,7 +1,7 @@
 # ntcharts3d API
 
-`ntcharts3d` provides Z-up 3D charts for Bubble Tea. It renders with go-gpuimage
-and displays the result through ntcharts `picture.Model`.
+`ntcharts3d` provides Z-up 3D charts for Bubble Tea. It renders through `nimbleterminal.dev/nt3d`
+and displays the result through `nimbleterminal.dev/ntpicture.Picture`.
 
 ## Terminology and composition
 
@@ -47,14 +47,15 @@ than camera movement. A sampler may be called more than once during an update.
 
 ## Coordinates and appearance
 
-Import `github.com/NimbleMarkets/ntcharts3d/math3d` for geometry types.
-`math3d.Vec3` provides `Add`, `Sub`, `Scale`, `Dot`, `Cross`, and `Normalize` methods.
-`math3d.Mat4` provides `Mul`, `Transform`, and `Project`. These methods return values
+Import `nimbleterminal.dev/nt3d/math` (package `nt3dmath`) for geometry types.
+The former `github.com/NimbleMarkets/ntcharts3d/math3d` package has been removed.
+`nt3dmath.Vec3` provides `Add`, `Sub`, `Scale`, `Dot`, `Cross`, and `Normalize` methods.
+`nt3dmath.Mat4` provides `Mul`, `Transform`, and `Project`. These methods return values
 without changing their inputs. `a.Mul(b)` computes `a * b`, applying `b` first
 when transforming a point. Both types use `float32` to match WebGPU;
 `Normalize` uses `float64` intermediates and leaves a zero vector unchanged.
-`math3d.Identity()` creates an identity matrix. `math3d.Ray` holds an origin and
-direction. `math3d.AABB.Include` expands bounds; `Normalization` returns the
+`nt3dmath.Identity()` creates an identity matrix. `nt3dmath.Ray` holds an origin and
+direction. `nt3dmath.AABB.Include` expands bounds; `Normalization` returns the
 matrix, center, and scale used to fit them around the origin.
 
 X/Y are horizontal; Z is up. Surface rows advance Y and columns advance X.
@@ -62,7 +63,7 @@ Bars occupy integer X/Y category positions, with width and depth 0.8, and
 extend from zero to their signed Z value.
 
 The plot is centered at the origin and uniformly scaled so its longest extent
-spans two units. `SetPlotAspect(math3d.Vec3{X: 1, Y: 1, Z: .5})` sets relative
+spans two units. `SetPlotAspect(nt3dmath.Vec3{X: 1, Y: 1, Z: .5})` sets relative
 plot lengths, useful when dimensions use different units. `WithPlotAspect` sets
 the initial proportions. All components must be positive and finite, with a
 ratio no greater than 1,000,000; the zero vector restores data proportions.
@@ -204,8 +205,8 @@ By default, the chart owns a BubbleZone manager and starts at the terminal
 origin. For a parent layout, pass `WithZoneManager(manager)` and call
 `manager.Scan` once on the complete parent `View`. Only the plot rectangle
 accepts mouse input. `SetSize` includes two rows for the title and hover details.
-Call `Close` after the program exits to release GPU resources
-and pending shared-memory images.
+Execute `Dispose()` before quitting, then call `Close()` after the program exits
+to release GPU resources.
 
 ## Lines and vector fields
 
@@ -214,8 +215,8 @@ repeat adjacent endpoints in the `Start` and `End` arrays:
 
 ```go
 cmd := chart.SetLines("trajectory", ntcharts3d.Lines{
-    Start: []math3d.Vec3{{X: 0}, {X: 1, Y: 1}},
-    End:   []math3d.Vec3{{X: 1, Y: 1}, {X: 2, Y: 1, Z: 1}},
+    Start: []nt3dmath.Vec3{{X: 0}, {X: 1, Y: 1}},
+    End:   []nt3dmath.Vec3{{X: 1, Y: 1}, {X: 2, Y: 1, Z: 1}},
     Width: 3,
     Color: []uint32{0x4488ccff, 0x4488ccff},
 })
@@ -232,8 +233,8 @@ endpoint-pair format; set `Geometry.LineWidth` to change its width.
 
 ```go
 cmd = chart.SetVectorField("velocity", ntcharts3d.VectorField{
-    Origins: positions, // []math3d.Vec3
-    Vectors: velocities, // []math3d.Vec3
+    Origins: positions, // []nt3dmath.Vec3
+    Vectors: velocities, // []nt3dmath.Vec3
     Scale:   0.25,
     Width:   2,
     HeadSize: 9,
@@ -361,7 +362,7 @@ changing `Frame.Revision`.
 It must serialize `Render` and `Close` and reuse geometry while `Revision` is
 unchanged. `Frame.TextureRevision` changes independently when imagery is replaced;
 renderers must refresh material bindings while retaining mesh buffers. `Texture`
-implements read-only `image.Image` for custom renderers. The default renderer runs GPU work on go-gpuimage's executor. WASM
+implements read-only `image.Image` for custom renderers. The default renderer adapts chart frames to nt3d, which owns GPU execution. WASM
 uploads and readback copy data across JavaScript calls.
 
 Presentation uses complete frames read back into Go memory. `Geometry.Lines`
@@ -389,8 +390,8 @@ drawn on screen, nor `Err()`. A caller with a renderer of its own can compare
 `mode` with `WebGPU` and use that instead.
 
 A snapshot is for keeping, so a software snapshot draws every point, triangle,
-bar, line, and arrow, where frames for the terminal are sampled. The glyph and
-software limit of 320×200 pixels does not apply. The area may not exceed
+bar, line, and arrow; terminal frames may sample points, lines, and arrows.
+Terminal raster sizing and adaptive resolution do not apply. The area may not exceed
 4096×2160 pixels. Wireframe draws text and has no image; `Snapshot` returns an
 error for it, as it does for a closed chart.
 
@@ -407,13 +408,13 @@ must not be called while another goroutine changes the chart.
 | Render mode | Limits |
 | --- | --- |
 | WebGPU | 500,000 scatter points total; `WithMaxPoints` can lower this. Surface dimensions 2–512; bar grids up to 512×512. Custom meshes up to `MaxMeshTriangles` (932,067) per series, with vertices shared or not. Up to 100,000 arrows and 262,144 line segments per series. Framebuffer area capped at 4096×2160 pixels. |
-| Software | The plot's full size for Kitty output, reduced while frames are slow to no less than 320×200 pixels; 320×200 for glyphs. Up to 10,000 sampled points and 20,000 sampled untextured triangles per series (textured meshes retain all triangles); first 2,000 bars per series; up to 20,000 sampled line segments and 10,000 sampled arrows per series. |
-| Wireframe | Canvas runes; up to 2,000 sampled points and 2,000 sampled triangles per series; first 500 bars per series; up to 2,000 sampled arrows per series; stroke widths are represented by single canvas runes. |
+| Software | Full Kitty raster while prompt, adaptively reduced toward a 320×200 bounding box. All triangles and bars; interactive point, line, and arrow sampling is owned by nt3d. Glyph raster is one pixel wide and two pixels high per cell. |
+| Wireframe | nt3d terminal wireframe with depth-aware geometry, chart axis/hover strokes, and cell labels. |
 
 The mesh limit is what fits the largest storage buffer binding that WebGPU
 promises, 128 MiB, at 48 bytes for each index. Native adapters often allow
 more, and a browser may allow less for several large series together, which
-share one buffer.
+consume device memory across separate geometry buffers.
 
 GPU initialization or rendering failure switches to software. A CPU adapter
 also selects software. Software draws at full size while it is prompt. A frame
@@ -423,10 +424,10 @@ comes to its full size. Three consecutive frames over 150 ms at the smallest
 size switch to wireframe. `WithRenderMode` and `SetRenderMode` select a mode explicitly;
 `SetRenderMode(WebGPU)` retries GPU initialization after fallback.
 
-Glyph output uses half-blocks and limits the framebuffer to 320×200 pixels,
-including when WebGPU is active. Wireframe uses canvas runes. Large surfaces
-may have holes in software and wireframe modes because they are subsampled.
-Software triangles crossing the near plane are dropped rather than clipped.
+Glyph output uses exactly one pixel wide and two pixels high per terminal cell,
+including when WebGPU is active. Projection uses the physical display aspect,
+not the glyph raster aspect. Software surfaces retain all triangles and nt3d
+clips triangles crossing the near plane.
 
 Point, line, and arrow picking is disabled above 200,000 combined scatter points,
 line segments, and arrows. Bars and surface vertices remain pickable.
@@ -459,3 +460,30 @@ selects `KittyFormatPNG` or `KittyFormatRGBA` instead. With
 `WithKittyMedium(picture.KittyMediumSharedMemory)`, supported terminals receive
 raw pixels through shared buffers; the selected encoding is the fallback when
 shared memory is unavailable.
+
+## Terminal session and cleanup
+
+Transport types come from `nimbleterminal.dev/ntpicture` (usually imported as
+`picture`). `WithTerminalSession(session)` shares discovery and cell geometry
+between charts on one terminal connection. The host owns supplied sessions;
+otherwise the chart creates and closes its own explicit session.
+
+`WithImageIDAllocator(func() (int, error))` replaces `WithKittyID`. Allocations
+must return fresh positive 24-bit IDs. By default ntpicture's shared allocator
+coordinates placements; streaming frames reuse their placement internally.
+
+Execute every command returned by setters and `Update`, including resize and
+legend changes. `PictureStatus()` exposes presentation generations, busy/error
+state, and actual encoding/medium. Presented means ordered output completion,
+not an acknowledgement from the terminal display.
+
+Quit from a parent model with `tea.Sequence(chart.Dispose(), tea.Quit)` and
+retain `defer chart.Close()` around the event loop. Continue forwarding late
+messages to `Update` after disposal so ntpicture can retire pending work.
+Dispose all charts before closing a host-owned terminal session.
+
+The chart module path is unchanged. `Frame`, custom `Renderer`, chart clipping,
+and picking semantics remain here. Math types come directly from `nt3d/math`;
+update old `math3d` imports and qualifiers to `nt3dmath`. Chart primitive types
+remain aliases to nt3d; use keyed primitive literals. The chart's
+opaque `NewTexture` contract is retained over immutable engine texture storage.

@@ -5,7 +5,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 func TestCameraProjectionAndRay(t *testing.T) {
@@ -13,7 +13,7 @@ func TestCameraProjectionAndRay(t *testing.T) {
 		c := DefaultCamera()
 		c.Projection = proj
 		m := c.Matrix(2)
-		x, y, z, ok := m.Project(math3d.Vec3{}, 800, 400)
+		x, y, z, ok := m.Project(nt3dmath.Vec3{}, 800, 400)
 		if !ok || abs(x-400) > .001 || abs(y-200) > .001 || z <= 0 || z >= 1 {
 			t.Fatalf("center: %v %v %v %v", x, y, z, ok)
 		}
@@ -22,7 +22,7 @@ func TestCameraProjectionAndRay(t *testing.T) {
 			t.Fatal("central ray misses target")
 		}
 		rr := c.RayFromCell(75, 25, 100, 50, 8, 16)
-		if !math3d.IsFinite(float64(rr.Direction.X)) {
+		if !nt3dmath.IsFinite(float64(rr.Direction.X)) {
 			t.Fatal("invalid ray")
 		}
 	}
@@ -61,8 +61,8 @@ func TestSurfaceTopology(t *testing.T) {
 
 func TestSoftwareTriangle(t *testing.T) {
 	c := DefaultCamera()
-	g := Geometry{Vertices: []Vertex{{math3d.Vec3{X: -1, Y: -1, Z: 0}, math3d.Vec3{Z: 1}, color.RGBA{255, 0, 0, 255}}, {math3d.Vec3{X: 1, Y: -1, Z: 0}, math3d.Vec3{Z: 1}, color.RGBA{255, 0, 0, 255}}, {math3d.Vec3{X: 0, Y: 1, Z: 0}, math3d.Vec3{Z: 1}, color.RGBA{255, 0, 0, 255}}}, Indices: []uint32{0, 1, 2}}
-	img := softwareRender(Frame{Width: 100, Height: 100, Matrix: c.Matrix(1), Geometry: []Geometry{g}, Light: Light{math3d.Vec3{Z: 1}, .3}})
+	g := Geometry{Vertices: []Vertex{{Position: nt3dmath.Vec3{X: -1, Y: -1, Z: 0}, Normal: nt3dmath.Vec3{Z: 1}, Color: color.RGBA{255, 0, 0, 255}}, {Position: nt3dmath.Vec3{X: 1, Y: -1, Z: 0}, Normal: nt3dmath.Vec3{Z: 1}, Color: color.RGBA{255, 0, 0, 255}}, {Position: nt3dmath.Vec3{X: 0, Y: 1, Z: 0}, Normal: nt3dmath.Vec3{Z: 1}, Color: color.RGBA{255, 0, 0, 255}}}, Indices: []uint32{0, 1, 2}}
+	img := softwareRender(Frame{Width: 100, Height: 100, Matrix: c.Matrix(1), Geometry: []Geometry{g}, Light: Light{nt3dmath.Vec3{Z: 1}, .3}})
 	n := 0
 	for y := 0; y < 100; y++ {
 		for x := 0; x < 100; x++ {

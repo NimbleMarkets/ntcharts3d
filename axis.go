@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 // Axis configures one shared coordinate axis. The zero value shows a numeric
@@ -108,7 +108,7 @@ func (m *Model) Axes() Axes { return m.axes.clone() }
 
 func axisName(i int) string { return [3]string{"X", "Y", "Z"}[i] }
 
-func (m *Model) axisFrames(b math3d.AABB) [3]AxisFrame {
+func (m *Model) axisFrames(b nt3dmath.AABB) [3]AxisFrame {
 	var out [3]AxisFrame
 	if !b.IsValid() {
 		return out
@@ -177,5 +177,5 @@ func (m *Model) datumLabel(si, idx int) string {
 	return ""
 }
 
-func components(v math3d.Vec3) [3]float32 { return [3]float32{v.X, v.Y, v.Z} }
-func vector(v [3]float32) math3d.Vec3     { return math3d.Vec3{X: v[0], Y: v[1], Z: v[2]} }
+func components(v nt3dmath.Vec3) [3]float32 { return [3]float32{v.X, v.Y, v.Z} }
+func vector(v [3]float32) nt3dmath.Vec3     { return nt3dmath.Vec3{X: v[0], Y: v[1], Z: v[2]} }

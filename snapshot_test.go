@@ -8,7 +8,7 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 // recorder is a renderer that notes the frames it is given.
@@ -129,8 +129,7 @@ func TestSnapshotFallsBackToSoftware(t *testing.T) {
 }
 
 func TestSoftwareSnapshotDrawsEveryTriangle(t *testing.T) {
-	// 150×150 is some 44,000 triangles: for the terminal, software draws
-	// one in three, and the surface shows holes.
+	// nt3d draws every surface triangle, including interactive frames.
 	m := New(80, 24, WithRenderMode(Software), WithBackground(color.RGBA{255, 255, 255, 255}))
 	defer m.Close()
 	m.SetSurface("plane", Surface{NX: 150, NY: 150, Sampler: func(x, y float64) float64 { return 0 }})
@@ -156,8 +155,8 @@ func TestSoftwareSnapshotDrawsEveryTriangle(t *testing.T) {
 		}
 		return n
 	}
-	if holes(sampled) == 0 {
-		t.Fatal("the terminal's frame was expected to be sampled; the test proves nothing")
+	if holes(sampled) != 0 {
+		t.Fatal("interactive surface has holes")
 	}
 	if n := holes(img); n != 0 {
 		t.Fatalf("the snapshot has %d holes in the middle of the surface", n)
@@ -195,13 +194,13 @@ func triangles(n int) Geometry {
 	}
 	for i := range n {
 		x, y := float32(i/2%side), float32(i/2/side)
-		corners := [3]math3d.Vec3{{X: x, Y: y}, {X: x + 1, Y: y}, {X: x, Y: y + 1}}
+		corners := [3]nt3dmath.Vec3{{X: x, Y: y}, {X: x + 1, Y: y}, {X: x, Y: y + 1}}
 		if i%2 == 1 {
-			corners = [3]math3d.Vec3{{X: x + 1, Y: y}, {X: x + 1, Y: y + 1}, {X: x, Y: y + 1}}
+			corners = [3]nt3dmath.Vec3{{X: x + 1, Y: y}, {X: x + 1, Y: y + 1}, {X: x, Y: y + 1}}
 		}
 		for _, p := range corners {
 			g.Indices = append(g.Indices, uint32(len(g.Vertices)))
-			g.Vertices = append(g.Vertices, Vertex{Position: p, Normal: math3d.Vec3{Z: 1}, Color: color.RGBA{100, 180, 230, 255}})
+			g.Vertices = append(g.Vertices, Vertex{Position: p, Normal: nt3dmath.Vec3{Z: 1}, Color: color.RGBA{100, 180, 230, 255}})
 			g.Bounds.Include(p)
 		}
 	}

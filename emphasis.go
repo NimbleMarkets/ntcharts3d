@@ -5,10 +5,10 @@ package ntcharts3d
 import (
 	tea "charm.land/bubbletea/v2"
 	"fmt"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
 	"image"
 	"image/color"
 	"math"
+	"nimbleterminal.dev/nt3d/math"
 	"unicode/utf8"
 )
 
@@ -22,7 +22,7 @@ type Emphasis struct {
 
 // EmphasisFrame describes a resolved hover highlight. Box is nil for a point ring.
 type EmphasisFrame struct {
-	Position math3d.Vec3
+	Position nt3dmath.Vec3
 	Radius   float32 // Point radius in pixels, before the ring's padding.
 	Box      *Box
 	Label    string

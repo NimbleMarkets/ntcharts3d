@@ -8,11 +8,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
+	picture "nimbleterminal.dev/ntpicture"
 
-	gpuimage "github.com/NimbleMarkets/go-gpuimage"
+	gpuimage "nimbleterminal.dev/ntgpuimage"
 )
 
 type tickMsg struct{ generation uint64 }
@@ -24,17 +23,18 @@ type renderedMsg struct {
 	elapsed time.Duration
 	err     error
 }
-type encodedMsg struct {
-	frame   tea.Msg
-	elapsed time.Duration
-}
-type presentedMsg struct{}
 
 const chromeRows = 4 // title, stats, breakdown, help
 
 type model struct {
-	pic      picture.Model
-	renderer sceneRenderer
+	pic            *picture.Picture
+	session        *picture.TerminalSession
+	pictures       map[[2]int]*picture.Picture
+	format         picture.KittyFormat
+	medium         picture.KittyMedium
+	closed         bool
+	prepareStarted time.Time
+	renderer       sceneRenderer
 
 	width, height, cols, rows int
 	rasterW, rasterH          int
@@ -44,9 +44,8 @@ type model struct {
 	pointSize        float32
 
 	lastClock, frameStarted, lastPresented time.Time
-	renderMS, encodeMS, fps                float64
+	renderMS, presentMS, fps               float64
 	drawMS, submitMS, mapMS, copyMS        float64
-	bytes                                  int
 	transport                              string
 	frames                                 int
 	encodedFrames                          map[string]int
@@ -58,15 +57,49 @@ type model struct {
 }
 
 func newModel(r sceneRenderer, format picture.KittyFormat, medium picture.KittyMedium, fps, density int) *model {
-	return &model{
-		renderer: r, density: density, targetFPS: fps,
-		yaw: 0.6, pitch: 0.35, dist: 3, pointSize: 2,
-		playing: true, dirty: true, transport: "probing",
-		encodedFrames: make(map[string]int),
-		pic: picture.NewWithConfig(picture.Config{
-			Fit: picture.FitFill, KittyFormat: format, KittyMedium: medium, CellPixelWidth: 8, CellPixelHeight: 16,
-		}),
+	m := &model{renderer: r, density: density, targetFPS: fps, yaw: .6, pitch: .35, dist: 3, pointSize: 2,
+		playing: true, dirty: true, transport: "probing", encodedFrames: make(map[string]int),
+		session: picture.NewTerminalSession(picture.TerminalOptions{}), pictures: make(map[[2]int]*picture.Picture), format: format, medium: medium}
+	m.selectPicture()
+	return m
+}
+
+// Picture encoding options are fixed at construction. Cache the small set of
+// diagnostic configurations, sharing one terminal session and image allocator.
+// Hidden pictures still receive completion/retirement messages.
+func (m *model) selectPicture() tea.Cmd {
+	var hide tea.Cmd
+	if m.pic != nil {
+		hide = m.pic.SetVisible(false)
 	}
+	key := [2]int{int(m.format), int(m.medium)}
+	p := m.pictures[key]
+	if p == nil {
+		p = picture.New(picture.Options{Session: m.session, StableID: true, Render: picture.Config{Fit: picture.FitFill, KittyFormat: m.format, KittyMedium: m.medium}})
+		m.pictures[key] = p
+	}
+	m.pic = p
+	mode := picture.PictureGlyph
+	if !m.forceGlyph && m.session.Snapshot().Kitty == picture.KittyCapabilitySupported {
+		mode = picture.PictureKitty
+	}
+	m.epoch++
+	m.dirty = true
+	return tea.Batch(hide, p.SetMode(mode), p.SetVisible(true), m.geometry())
+}
+
+func (m *model) Dispose() tea.Cmd {
+	if m.closed {
+		return nil
+	}
+	m.closed = true
+	m.wakeGeneration++
+	var cmds []tea.Cmd
+	for _, p := range m.pictures {
+		cmds = append(cmds, p.Close())
+	}
+	m.session.Close()
+	return tea.Batch(cmds...)
 }
 
 func (m *model) Init() tea.Cmd {
@@ -81,31 +114,29 @@ func (m *model) showChrome() bool { return !m.fullscreen && m.width >= 40 && m.h
 
 // geometry derives the cell rectangle and raster size from the terminal
 // size, density, and cell pixel size, exactly as the shaders gallery does.
-func (m *model) geometry() {
+func (m *model) geometry() tea.Cmd {
 	m.cols, m.rows = max(1, m.width), max(1, m.height)
 	if m.showChrome() {
 		m.rows = max(1, m.height-chromeRows)
 	}
-	m.pic.SetSize(m.cols, m.rows)
+	resize := m.pic.SetSize(m.cols, m.rows)
 	cw, ch := m.pic.CellPixelSize()
 	factor := math.Min(1, float64(m.density)/float64(ch))
 	factor = math.Min(factor, math.Min(2048/float64(m.cols*cw), 1536/float64(m.rows*ch)))
 	factor = math.Min(factor, math.Sqrt((1536*1024)/float64(m.cols*m.rows*cw*ch)))
 	factor = math.Min(1, math.Nextafter(factor, math.Inf(1)))
-	m.pic.SetKittyResolutionFactor(factor)
-	m.rasterW = m.cols * max(1, int(float64(cw)*factor))
-	m.rasterH = m.rows * max(1, int(float64(ch)*factor))
-	if m.pic.Mode() == picture.PictureGlyph {
-		m.rasterW = min(m.cols, 2048)
-		m.rasterH = min(m.rows*2, 1536)
-	}
+	resolution := m.pic.SetResolution(factor)
+	g := m.pic.RasterGeometry()
+	m.rasterW, m.rasterH = g.Pixels.X, g.Pixels.Y
+	return tea.Batch(resize, resolution)
+
 }
 
 func (m *model) render() tea.Cmd {
-	if m.busy || m.width < 1 || m.height < 1 || (!m.playing && !m.dirty) || m.err != nil {
+	if m.closed || m.busy || m.pic.Status().Busy || m.width < 1 || m.height < 1 || (!m.playing && !m.dirty) || m.err != nil {
 		return nil
 	}
-	m.geometry()
+	geometry := m.geometry()
 	if m.rasterW < 1 || m.rasterH < 1 || m.rasterW > 2048 || m.rasterH > 1536 {
 		return nil
 	}
@@ -121,11 +152,11 @@ func (m *model) render() tea.Cmd {
 	epoch := m.epoch
 	req := frameRequest{width: m.rasterW, height: m.rasterH, yaw: m.yaw, pitch: m.pitch, dist: m.dist, pointSize: m.pointSize}
 	renderer := m.renderer
-	return func() tea.Msg {
+	return tea.Batch(geometry, func() tea.Msg {
 		start := time.Now()
 		img, st, err := renderer.Render(req)
 		return renderedMsg{epoch, img, st, time.Since(start), err}
-	}
+	})
 }
 
 func smooth(old, next float64) float64 {
@@ -137,32 +168,44 @@ func smooth(old, next float64) float64 {
 
 func ms(d time.Duration) float64 { return float64(d) / float64(time.Millisecond) }
 
-func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
+	before := m.pic.RasterGeometry()
+	var pictureCmd tea.Cmd
+	for _, p := range m.pictures {
+		pictureCmd = tea.Batch(pictureCmd, p.Update(msg))
+	}
+	defer func() { cmd = tea.Batch(pictureCmd, cmd) }()
+	if m.closed {
+		return m, nil
+	}
+	if !m.forceGlyph && m.pic.Mode() == picture.PictureGlyph && m.session.Snapshot().Kitty == picture.KittyCapabilitySupported {
+		pictureCmd = tea.Batch(pictureCmd, m.pic.SetMode(picture.PictureKitty))
+	}
+	if before != m.pic.RasterGeometry() {
+		m.epoch++
+		m.dirty = true
+		pictureCmd = tea.Batch(pictureCmd, m.geometry())
+	}
+
 	switch msg := msg.(type) {
 	case quitMsg:
-		return m, tea.Quit
+		return m, tea.Sequence(m.Dispose(), tea.Quit)
 	case tea.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
 		m.epoch++
 		m.dirty = true
-		m.geometry()
-		return m, m.render()
-	case uv.CellSizeEvent:
-		m.pic.SetCellPixelSize(msg.Width, msg.Height)
-		m.epoch++
-		m.dirty = true
-		m.geometry()
-		return m, m.render()
+		return m, tea.Batch(m.geometry(), m.render())
 	case tickMsg:
 		if msg.generation != m.wakeGeneration {
 			return m, nil
 		}
 		return m, m.render()
 	case renderedMsg:
+		m.busy = false
 		if msg.err != nil {
 			m.err = msg.err
 			m.busy = false
-			return m, tea.Quit
+			return m, tea.Sequence(m.Dispose(), tea.Quit)
 		}
 		if msg.epoch != m.epoch {
 			m.busy = false
@@ -174,25 +217,31 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.submitMS = smooth(m.submitMS, ms(msg.stats.Submit))
 		m.mapMS = smooth(m.mapMS, ms(msg.stats.Map))
 		m.copyMS = smooth(m.copyMS, ms(msg.stats.Copy))
-		cmd := m.pic.SetImage(msg.image)
-		if cmd == nil {
-			m.bytes, m.encodeMS, m.transport = 0, 0, "glyph"
-			return m, func() tea.Msg { return presentedMsg{} }
+		m.prepareStarted = time.Now()
+		return m, m.pic.SetImageImmutable(msg.image)
+	case picture.ErrorMsg:
+		if msg.Owner != m.pic || msg.Generation != m.pic.Status().Generation {
+			return m, nil
 		}
-		return m, func() tea.Msg { start := time.Now(); frame := cmd(); return encodedMsg{frame, time.Since(start)} }
-	case encodedMsg:
-		m.encodeMS = smooth(m.encodeMS, ms(msg.elapsed))
-		if frame, ok := msg.frame.(picture.KittyFrameMsg); ok {
-			// With shared memory the APC contains a name, not the pixels.
-			m.transport = frame.Format.String()
-			if frame.Medium == picture.KittyMediumSharedMemory {
+		m.err = msg.Err
+		return m, tea.Sequence(m.Dispose(), tea.Quit)
+	case picture.PresentedMsg:
+		if msg.Owner != m.pic || msg.Generation != m.pic.Status().Generation || m.busy {
+			return m, nil
+		}
+		status := m.pic.Status()
+		m.transport = "glyph"
+		if m.pic.Mode() == picture.PictureKitty {
+			m.transport = status.Format.String()
+			if status.Medium == picture.KittyMediumSharedMemory {
 				m.transport = "shm"
 			}
 			m.encodedFrames[m.transport]++
-			m.bytes = len(frame.APC)
 		}
-		return m, tea.Sequence(m.pic.Update(msg.frame), func() tea.Msg { return presentedMsg{} })
-	case presentedMsg:
+		if !m.prepareStarted.IsZero() {
+			m.presentMS = smooth(m.presentMS, ms(time.Since(m.prepareStarted)))
+			m.prepareStarted = time.Time{}
+		}
 		now := time.Now()
 		if m.playing && !m.lastPresented.IsZero() {
 			m.fps = smooth(m.fps, 1/now.Sub(m.lastPresented).Seconds())
@@ -200,8 +249,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.lastPresented = now
 		m.busy = false
 		if m.frames%30 == 1 {
-			debugf("frame %d mode=%d path=%s raster=%dx%d fps=%.1f R=%.2f (draw %.2f submit %.2f map %.2f copy %.2f) E=%.2f bytes=%d kitty=%d",
-				m.frames, m.pic.Mode(), m.transport, m.rasterW, m.rasterH, m.fps, m.renderMS, m.drawMS, m.submitMS, m.mapMS, m.copyMS, m.encodeMS, m.bytes, picture.KittySupported())
+			debugf("frame %d mode=%d path=%s raster=%dx%d fps=%.1f R=%.2f (draw %.2f submit %.2f map %.2f copy %.2f) P=%.2f kitty=%d",
+				m.frames, m.pic.Mode(), m.transport, m.rasterW, m.rasterH, m.fps, m.renderMS, m.drawMS, m.submitMS, m.mapMS, m.copyMS, m.presentMS, m.session.Snapshot().Kitty)
 		}
 		if m.dirty {
 			return m, m.render()
@@ -216,7 +265,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var extra tea.Cmd
 		switch msg.String() {
 		case "q", "ctrl+c":
-			return m, tea.Quit
+			return m, tea.Sequence(m.Dispose(), tea.Quit)
 		case "left":
 			m.yaw -= 0.15
 		case "right":
@@ -236,45 +285,48 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.fps = 0
 		case "f", "ctrl+f":
 			m.fullscreen = !m.fullscreen
-			m.geometry()
+			extra = tea.Batch(extra, m.geometry())
 			m.epoch++
 		case "esc":
 			m.fullscreen = false
-			m.geometry()
+			extra = tea.Batch(extra, m.geometry())
 			m.epoch++
 		case "r":
 			m.yaw, m.pitch, m.dist = 0.6, 0.35, 3
 			m.epoch++
 		case "t":
 			format := picture.KittyFormatRGBA
-			if m.pic.KittyFormat() == picture.KittyFormatRGBA {
+			if m.format == picture.KittyFormatRGBA {
 				format = picture.KittyFormatPNG
 			}
-			extra = m.pic.SetKittyFormat(format)
-			m.encodeMS, m.fps = 0, 0
+			m.format = format
+			extra = m.selectPicture()
+			m.presentMS, m.fps = 0, 0
 			m.lastPresented = time.Time{}
 		case "m":
 			medium := picture.KittyMediumSharedMemory
-			if m.pic.KittyMedium() == picture.KittyMediumSharedMemory {
+			if m.medium == picture.KittyMediumSharedMemory {
 				medium = picture.KittyMediumDirect
 			}
-			extra = m.pic.SetKittyMedium(medium)
-			m.encodeMS, m.fps = 0, 0
+			m.medium = medium
+			extra = m.selectPicture()
+			m.presentMS, m.fps = 0, 0
 			m.lastPresented = time.Time{}
 		case "g":
 			m.forceGlyph = !m.forceGlyph
-			if m.forceGlyph && m.pic.Mode() == picture.PictureKitty || !m.forceGlyph && m.pic.Mode() == picture.PictureGlyph {
-				extra = m.pic.Toggle()
+			mode := picture.PictureGlyph
+			if !m.forceGlyph && m.session.Snapshot().Kitty == picture.KittyCapabilitySupported {
+				mode = picture.PictureKitty
 			}
-			m.geometry()
+			extra = tea.Batch(m.pic.SetMode(mode), m.geometry())
 			m.epoch++
 		case ",":
 			m.density = max(2, m.density-2)
-			m.geometry()
+			extra = tea.Batch(extra, m.geometry())
 			m.epoch++
 		case ".":
 			m.density = min(40, m.density+2)
-			m.geometry()
+			extra = tea.Batch(extra, m.geometry())
 			m.epoch++
 		default:
 			return m, nil
@@ -282,15 +334,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.dirty = true
 		return m, tea.Batch(extra, m.render())
 	}
-	cmd := m.pic.Update(msg)
-	if !m.forceGlyph && m.pic.Mode() == picture.PictureGlyph && picture.KittySupported() == picture.KittyCapabilitySupported {
-		debugf("kitty probe answered: switching picture to Kitty mode")
-		toggle := m.pic.Toggle()
-		m.epoch++
-		m.dirty = true
-		return m, tea.Batch(cmd, toggle, m.render())
+	if m.dirty {
+		return m, m.render()
 	}
-	return m, cmd
+	return m, nil
 }
 
 var accent = lipgloss.NewStyle().Foreground(lipgloss.Color("#70ead1")).Bold(true)
@@ -300,7 +347,7 @@ func (m *model) View() tea.View {
 	if m.width < 1 || m.height < 1 {
 		return tea.NewView("Starting GPU point cloud…")
 	}
-	content := m.pic.String()
+	content := m.pic.View()
 	if content == "" {
 		content = lipgloss.NewStyle().Width(m.cols).Height(m.rows).Render("Rendering…")
 	}
@@ -310,8 +357,8 @@ func (m *model) View() tea.View {
 			state = "PAUSED"
 		}
 		title := accent.Render("BOOBA-SHIM / WGPU POINT CLOUD") + "   " + muted.Render(m.renderer.Name()) + "   " + muted.Render(state)
-		stats := fmt.Sprintf("%s · %.0f app fps · %d×%d · R %.1f / E %.1f ms · %s",
-			m.transport, m.fps, m.rasterW, m.rasterH, m.renderMS, m.encodeMS, formatBytes(m.bytes))
+		stats := fmt.Sprintf("%s · %.0f app fps · %d×%d · R %.1f / P %.1f ms",
+			m.transport, m.fps, m.rasterW, m.rasterH, m.renderMS, m.presentMS)
 		breakdown := fmt.Sprintf("draw %.2f · submit %.2f · map %.2f · copy %.2f ms · yaw %.2f pitch %.2f dist %.2f · density %d",
 			m.drawMS, m.submitMS, m.mapMS, m.copyMS, m.yaw, m.pitch, m.dist, m.density)
 		help := "←→↑↓ orbit · +- zoom · space pause · f full · t png/rgba · m shm · g glyph · ,. density · r reset · q quit"
@@ -321,15 +368,4 @@ func (m *model) View() tea.View {
 	view := tea.NewView(content)
 	view.AltScreen = true
 	return view
-}
-
-func formatBytes(n int) string {
-	switch {
-	case n < 1024:
-		return fmt.Sprintf("%d B", n)
-	case n < 1024*1024:
-		return fmt.Sprintf("%.1f KiB", float64(n)/1024)
-	default:
-		return fmt.Sprintf("%.2f MiB", float64(n)/(1024*1024))
-	}
 }

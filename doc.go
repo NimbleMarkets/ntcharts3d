@@ -5,5 +5,5 @@
 //
 // A Palette supplies colors; a color domain maps values to those colors.
 // A ColorLegend displays the mapping. RenderMode selects WebGPU, software,
-// or wireframe rendering. ntcharts handles terminal image and glyph output.
+// or wireframe rendering. nt3d owns rendering; ntpicture owns terminal sessions and image/glyph output.
 package ntcharts3d

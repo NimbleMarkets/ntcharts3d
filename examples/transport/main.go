@@ -1,5 +1,5 @@
 // transport shows a GPU-rendered 3D point cloud inside a Bubble Tea
-// layout through ntcharts/picture, natively and in the browser via go-booba.
+// layout through ntpicture, natively and in the browser via go-booba.
 package main
 
 import (
@@ -11,7 +11,7 @@ import (
 	"os"
 
 	booba "github.com/NimbleMarkets/go-booba"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	picture "nimbleterminal.dev/ntpicture"
 )
 
 func main() {
@@ -59,7 +59,7 @@ func run() error {
 	defer scene.Close()
 
 	m := newModel(scene, kittyFormat, kittyMedium, *fps, *density)
-	defer m.pic.SetImage(nil) // release any shared-memory frames still pending at exit
+	defer m.Dispose() // final resource release; quit paths execute placement cleanup
 	m.fullscreen = *fullscreen
 	m.duration = *duration
 	// booba.Run picks the native or browser runtime; m is a pointer, so its
@@ -69,18 +69,18 @@ func run() error {
 	var reportErr error
 	if *report != "" {
 		data, marshalErr := json.MarshalIndent(struct {
-			GPU           string         `json:"gpu"`
-			Frames        int            `json:"frames"`
-			EncodedFrames map[string]int `json:"encoded_frames"`
-			AppFPS        float64        `json:"app_fps"`
-			RenderMS      float64        `json:"render_ms"`
-			DrawMS        float64        `json:"draw_ms"`
-			SubmitMS      float64        `json:"submit_ms"`
-			MapMS         float64        `json:"map_ms"`
-			CopyMS        float64        `json:"copy_ms"`
-			EncodeMS      float64        `json:"encode_ms"`
-			Width, Height int
-		}{scene.Name(), m.frames, m.encodedFrames, m.fps, m.renderMS, m.drawMS, m.submitMS, m.mapMS, m.copyMS, m.encodeMS, m.rasterW, m.rasterH}, "", "  ")
+			GPU            string         `json:"gpu"`
+			Frames         int            `json:"frames"`
+			EncodedFrames  map[string]int `json:"encoded_frames"`
+			AppFPS         float64        `json:"app_fps"`
+			RenderMS       float64        `json:"render_ms"`
+			DrawMS         float64        `json:"draw_ms"`
+			SubmitMS       float64        `json:"submit_ms"`
+			MapMS          float64        `json:"map_ms"`
+			CopyMS         float64        `json:"copy_ms"`
+			PresentationMS float64        `json:"presentation_ms"`
+			Width, Height  int
+		}{scene.Name(), m.frames, m.encodedFrames, m.fps, m.renderMS, m.drawMS, m.submitMS, m.mapMS, m.copyMS, m.presentMS, m.rasterW, m.rasterH}, "", "  ")
 		if marshalErr != nil {
 			reportErr = marshalErr
 		} else {

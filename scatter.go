@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 const MaxPoints = 500_000
@@ -81,7 +81,7 @@ func (s scatterSeries) geometry(cs Palette, domain *[2]float32) (Geometry, error
 		g.ColorMin, g.ColorMax, g.HasColorRange = lo, hi, true
 	}
 	for i := range n {
-		p := math3d.Vec3{X: d.X[i], Y: d.Y[i], Z: d.Z[i]}
+		p := nt3dmath.Vec3{X: d.X[i], Y: d.Y[i], Z: d.Z[i]}
 		radius := float32(2)
 		if len(d.Size) > 0 {
 			radius = d.Size[i]
@@ -94,7 +94,7 @@ func (s scatterSeries) geometry(cs Palette, domain *[2]float32) (Geometry, error
 			v := d.Color[i]
 			c = color.RGBA{uint8(v >> 24), uint8(v >> 16), uint8(v >> 8), uint8(v)}
 		}
-		g.Points[i] = Point{p, max(1, min(32, radius)), c, i}
+		g.Points[i] = Point{Position: p, Radius: max(1, min(32, radius)), Color: c, Datum: i}
 		g.Bounds.Include(p)
 	}
 	return g, nil

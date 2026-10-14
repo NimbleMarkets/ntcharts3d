@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 // Bars holds a category grid stored by row. Values are signed heights from zero;
@@ -61,9 +61,9 @@ func (s barSeries) geometry(cs Palette, domain *[2]float32) (Geometry, error) {
 		if !validFloat(v, vals[i]) {
 			return Geometry{}, fmt.Errorf("ntcharts3d: non-finite bar datum")
 		}
-		p := math3d.Vec3{X: float32(i%d.NX) - .4, Y: float32(i/d.NX) - .4, Z: min(0, v)}
-		size := math3d.Vec3{X: .8, Y: .8, Z: float32(math.Abs(float64(v)))}
-		g.Boxes = append(g.Boxes, Box{p, size, mapped(cs, vals[i], lo, hi), i})
+		p := nt3dmath.Vec3{X: float32(i%d.NX) - .4, Y: float32(i/d.NX) - .4, Z: min(0, v)}
+		size := nt3dmath.Vec3{X: .8, Y: .8, Z: float32(math.Abs(float64(v)))}
+		g.Boxes = append(g.Boxes, Box{Min: p, Size: size, Color: mapped(cs, vals[i], lo, hi), Datum: i})
 		g.Bounds.Include(p)
 		g.Bounds.Include(p.Add(size))
 	}

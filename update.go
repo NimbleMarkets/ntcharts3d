@@ -6,37 +6,42 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	uv "github.com/charmbracelet/ultraviolet"
+	picture "nimbleterminal.dev/ntpicture"
 )
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
+	before := m.pic.RasterGeometry()
+	pictureCmd := m.pic.Update(msg)
+	defer func() { cmd = tea.Batch(pictureCmd, cmd) }()
+
 	if m.closed {
 		return m, nil
+	}
+	if !m.forceGlyph && m.pic.Mode() == picture.PictureGlyph && m.session.Snapshot().Kitty == picture.KittyCapabilitySupported {
+		pictureCmd = tea.Batch(pictureCmd, m.togglePicture())
+	}
+	if before != m.pic.RasterGeometry() {
+		m.seq++
+		m.dirty = true
+		m.wake++
 	}
 	switch v := msg.(type) {
 	case tea.WindowSizeMsg:
 		return m, m.SetSize(v.Width, v.Height)
-	case uv.CellSizeEvent:
-		if v.Width > 0 && v.Height > 0 {
-			_ = m.pic.SetCellPixelSize(v.Width, v.Height)
-			return m, m.changed(false)
-		}
 	case rendered:
 		if v.id != m.id {
 			return m, nil
 		}
+		m.busy = false
+		if v.seq != m.seq {
+			return m, m.schedule()
+		}
 		if v.err != nil {
 			m.err = v.err
-			m.renderMode = v.renderMode
 			if m.renderer != nil {
 				_ = m.renderer.Close()
 				m.renderer = nil
 			}
-		}
-		if v.seq != m.seq {
-			m.busy = false
-			return m, m.schedule()
 		}
 		m.renderMode = v.renderMode
 		m.wire = v.wire
@@ -47,35 +52,39 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.slow >= 3 {
 			m.renderMode = Wireframe
-			_ = m.resizePicture()
+			pictureCmd = tea.Batch(pictureCmd, m.pic.SetVisible(false), m.resizePicture())
 			m.dirty = true
 		}
 		if v.renderMode == Wireframe {
-			cleanup := m.pic.SetImage(nil)
-			return m, tea.Sequence(cleanup, func() tea.Msg { return presented{m.id} })
+			return m, m.finish()
 		}
-		return m, m.present(v.frame, v.frame.Bounds())
-	case encoded:
-		if v.id != m.id {
-			return m, nil
-		}
-		if frame, ok := v.msg.(picture.KittyFrameMsg); ok {
-			m.transport = frame.Format.String()
-			if frame.Medium == picture.KittyMediumSharedMemory {
-				m.transport = "shm"
-			}
-		}
-		id := m.id
-		return m, tea.Sequence(m.pic.Update(v.msg), func() tea.Msg { return presented{id} })
-	case presented:
-		if v.id != m.id {
-			return m, nil
-		}
-		m.busy = false
-		if m.dirty {
+		if m.renderMode == Wireframe {
 			return m, m.schedule()
 		}
-		return m, m.timer()
+		if v.frame == nil {
+			return m, m.finish()
+		}
+		return m, m.present(v.frame)
+	case picture.PresentedMsg:
+		if v.Owner != m.pic || v.Generation != m.pic.Status().Generation {
+			return m, nil
+		}
+		status := m.pic.Status()
+		m.transport = status.Format.String()
+		if status.Medium == picture.KittyMediumSharedMemory {
+			m.transport = "shm"
+		}
+		return m, m.finish()
+	case picture.ErrorMsg:
+		if v.Owner != m.pic || v.Generation != m.pic.Status().Generation {
+			return m, nil
+		}
+		m.err = v.Err
+		if m.pic.Mode() == picture.PictureKitty {
+			m.forceGlyph = true
+			return m, tea.Batch(m.togglePicture(), m.changed(false))
+		}
+		return m, m.SetRenderMode(Wireframe)
 	case tick:
 		if v.id != m.id || v.generation != m.wake || !m.camera.AutoRotate {
 			return m, nil
@@ -88,7 +97,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		switch v.String() {
 		case "q", "ctrl+c":
-			return m, tea.Quit
+			return m, tea.Sequence(m.Dispose(), tea.Quit)
 		case "left", "h":
 			m.camera.Beta -= 5
 		case "right", "l":
@@ -130,14 +139,5 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.MouseMsg:
 		return m, m.mouse(v)
 	}
-	before := m.pic.Mode()
-	cmd := m.pic.Update(msg)
-	if !m.forceGlyph && m.pic.Mode() == picture.PictureGlyph && picture.KittySupported() == picture.KittyCapabilitySupported {
-		toggle := m.togglePicture()
-		return m, tea.Batch(cmd, toggle, m.changed(false))
-	}
-	if before != m.pic.Mode() {
-		return m, tea.Batch(cmd, m.changed(false))
-	}
-	return m, cmd
+	return m, m.schedule()
 }

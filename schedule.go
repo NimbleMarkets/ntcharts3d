@@ -10,7 +10,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	picture "nimbleterminal.dev/ntpicture"
 )
 
 func (m *Model) changed(data bool) tea.Cmd {
@@ -31,13 +31,6 @@ type rendered struct {
 	err        error
 	elapsed    time.Duration
 }
-
-type encoded struct {
-	id  uint64
-	msg tea.Msg
-}
-
-type presented struct{ id uint64 }
 
 type tick struct {
 	id, generation uint64
@@ -96,26 +89,28 @@ func (m *Model) paced(elapsed time.Duration) bool {
 	return false
 }
 
-// frame is what the terminal shows: sized by its cells, and reduced where
-// the picture is shown as glyphs or drawn slowly in software.
-func (m *Model) frame() Frame {
-	cw, ch := m.pic.CellPixelSize()
-	plotRows := m.plotHeight()
-	plotCols := m.plotWidth()
-	w, h := plotCols*cw, plotRows*ch
+// resolution delegates raster rounding to ntpicture while retaining chart pacing.
+func (m *Model) resolution() tea.Cmd {
 	factor := 1.0
-	switch {
-	case m.pic.Mode() == picture.PictureGlyph:
-		factor = m.smallest()
-	case m.renderMode == Software:
+	if m.renderMode == Software {
 		factor = m.softwareScale()
 	}
-	w, h = max(1, int(float64(w)*factor)), max(1, int(float64(h)*factor))
-	if w*h > maxFramePixels {
-		factor := math.Sqrt(float64(maxFramePixels) / float64(w*h))
-		w, h = max(1, int(float64(w)*factor)), max(1, int(float64(h)*factor))
+	cw, ch := m.pic.CellPixelSize()
+	area := float64(m.plotWidth()) * float64(cw) * float64(m.plotHeight()) * float64(ch)
+	if area > maxFramePixels {
+		factor = math.Min(factor, math.Sqrt(float64(maxFramePixels)/area))
 	}
-	return m.frameSized(w, h, float32(plotCols*cw)/float32(plotRows*ch), m.renderMode)
+	cmd := m.pic.SetResolution(factor)
+	for g := m.pic.RasterGeometry(); g.Mode == picture.PictureKitty && g.Pixels.X > maxFramePixels/max(1, g.Pixels.Y); g = m.pic.RasterGeometry() {
+		factor *= .99
+		cmd = tea.Batch(cmd, m.pic.SetResolution(factor))
+	}
+	return cmd
+}
+
+func (m *Model) frame() Frame {
+	g := m.pic.RasterGeometry()
+	return m.frameSized(max(1, g.Pixels.X), max(1, g.Pixels.Y), float32(g.DisplayAspect), m.renderMode)
 }
 
 // frameSized is the chart as it stands, w by h pixels, seen through a camera
@@ -163,14 +158,15 @@ func (m *Model) frameSized(w, h int, aspect float32, mode RenderMode) Frame {
 }
 
 func (m *Model) schedule() tea.Cmd {
-	if !m.started || m.closed || m.busy || !m.dirty {
+	if !m.started || m.closed || m.busy || !m.dirty || (m.renderMode != Wireframe && m.pic.Status().Busy) {
 		return nil
 	}
 	m.busy = true
 	m.dirty = false
+	resolution := m.resolution()
 	f := m.frame()
 	id, seq, renderMode, r, cols, rows := m.id, m.seq, m.renderMode, m.renderer, m.plotWidth(), m.plotHeight()
-	return func() tea.Msg {
+	return tea.Batch(resolution, func() tea.Msg {
 		start := time.Now()
 		var img image.Image
 		var err error
@@ -183,28 +179,32 @@ func (m *Model) schedule() tea.Cmd {
 			}
 			if err != nil {
 				renderMode = Software
-				factor := math.Min(1, math.Min(320/float64(f.Width), 200/float64(f.Height)))
-				f.Width, f.Height = max(1, int(float64(f.Width)*factor)), max(1, int(float64(f.Height)*factor))
 			}
 		}
 		if renderMode == Software {
-			img = softwareRender(f)
+			var renderErr error
+			img, renderErr = renderSoftware(f)
+			if renderErr != nil {
+				err = renderErr
+			}
 		}
 		if renderMode == Wireframe {
-			wire = wireRender(f, cols, rows)
+			wire, err = renderWireframe(f, cols, rows)
 		}
 		return rendered{id, seq, img, wire, renderMode, err, time.Since(start)}
-	}
+	})
 }
 
-// present sends a complete frame to picture. The dirty rectangle is unused.
-func (m *Model) present(img image.Image, dirty image.Rectangle) tea.Cmd {
-	cmd := m.pic.SetImage(img)
-	id := m.id
-	if cmd == nil {
-		return func() tea.Msg { return presented{id} }
+func (m *Model) present(img image.Image) tea.Cmd { return m.pic.SetImageImmutable(img) }
+
+func (m *Model) finish() tea.Cmd {
+	if m.busy {
+		return nil
 	}
-	return func() tea.Msg { return encoded{id, cmd()} }
+	if m.dirty {
+		return m.schedule()
+	}
+	return m.timer()
 }
 
 func (m *Model) timer() tea.Cmd {

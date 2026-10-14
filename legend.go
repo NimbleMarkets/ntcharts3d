@@ -67,8 +67,8 @@ func (m *Model) SetColorLegendVisible(visible bool) tea.Cmd {
 		return nil
 	}
 	m.colorLegendVisible = visible
-	_ = m.resizePicture()
-	return m.changed(false)
+	resize := m.resizePicture()
+	return tea.Batch(resize, m.changed(false))
 }
 
 func (m *Model) ColorLegendMode() ColorLegendMode { return m.colorLegendMode }
@@ -79,8 +79,8 @@ func (m *Model) SetColorLegendMode(mode ColorLegendMode) tea.Cmd {
 		return nil
 	}
 	m.colorLegendMode = mode
-	_ = m.resizePicture()
-	return m.changed(false)
+	resize := m.resizePicture()
+	return tea.Batch(resize, m.changed(false))
 }
 
 func (m *Model) colorLegendView(rows int) string {

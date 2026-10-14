@@ -25,9 +25,8 @@ func TestGPUSnapshot(t *testing.T) {
 		t.Fatalf("bounds %v", img.Bounds())
 	}
 	nonBackground(t, img, m.background)
-	// Another view of the same data is drawn without uploading it again.
-	r := m.renderer.(*gpuRenderer)
-	uploads := r.uploads
+	// Another view of the same data changes the image. Mesh revision forwarding
+	// is verified by TestEngineAdapterPreservesIndependentRevisions.
 	camera := m.Camera()
 	camera.Beta += 45
 	m.SetCamera(camera)
@@ -37,9 +36,6 @@ func TestGPUSnapshot(t *testing.T) {
 	}
 	if same(img, turned) {
 		t.Fatal("turning the camera did not change the snapshot")
-	}
-	if r.uploads != uploads {
-		t.Fatal("a second view uploaded the geometry again")
 	}
 	// A chart drawn in software on screen still has its GPU for the asking.
 	if _, mode, err := m.Snapshot(64, 64); err != nil || mode != WebGPU {

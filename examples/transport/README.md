@@ -1,23 +1,25 @@
 # Transport diagnostic
 
-Uses released `go-gpuimage v0.1.0` and `NTCharts v2.8.0`, with Go 1.26.8.
-No local module replacements are needed for these libraries. The existing
-Bubble Tea browser fork remains.
+Uses `ntgpuimage v0.2.0` and the repository's pinned `ntpicture`, with Go 1.26.8.
+Run `task deps` from the repository root first; see the root dependency notes.
+The Bubble Tea browser fork remains.
 
 This standalone diagnostic measures GPU rendering/readback separately from
 terminal transport. It does not import the ntcharts3d chart implementation,
 so it can provide a baseline alongside the gallery while chart code changes.
 
 A 3D point cloud (4 000 points on a sphere, depth-tested, instanced quads)
-rendered by the GPU through [`go-gpuimage`](https://github.com/NimbleMarkets/go-gpuimage) and shown inside
-a Bubble Tea layout by ntcharts `picture.Model`. The same source runs
+rendered by the GPU through [`ntgpuimage`](https://github.com/NimbleTerminal/ntgpuimage) and shown inside
+a Bubble Tea layout by `ntpicture.Picture` with an explicit `TerminalSession`. The same source runs
 natively in a Kitty-capable terminal and in the browser under go-booba.
 
 The header reports the image path (`png`, `rgba`, or `shm` for Kitty frames,
 `glyph` for the half-block fallback), application FPS, raster size, **R** (GPU render +
-readback, `Stats.Total`) and **E** (picture preparation and encoding) in ms, and the Kitty
-APC payload size; the second line breaks R into `draw / submit / map / copy`.
-Application FPS measures frame submission, not the terminal's display refresh.
+readback, `Stats.Total`) and **P** (submission through ordered presentation completion) in ms; the second line breaks R into `draw / submit / map / copy`.
+Application FPS measures presentation completion, not the terminal's display refresh.
+P includes preparation and output sequencing, not just encoding. The JSON field
+is `presentation_ms`; raw APC byte counts are no longer available. Encoding/medium
+toggles select cached Picture configurations sharing one session and allocator.
 
 ## Run
 

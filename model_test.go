@@ -3,10 +3,11 @@ package ntcharts3d
 import (
 	tea "charm.land/bubbletea/v2"
 	"errors"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"fmt"
 	"image"
 	"image/color"
+	"nimbleterminal.dev/nt3d/math"
+	picture "nimbleterminal.dev/ntpicture"
 	"strings"
 	"testing"
 	"time"
@@ -97,14 +98,15 @@ func TestAutomaticDemotionAndIdle(t *testing.T) {
 	if msg.renderMode != Software || msg.frame == nil {
 		t.Fatal("no fallback")
 	}
-	m.Update(msg)
+	_, present := m.Update(msg)
+	drain(t, m, present)
 	if !r.closed || m.RenderMode() != Software {
 		t.Fatal("failed GPU not released")
 	}
 	if m.RequestedRenderMode() != WebGPU {
 		t.Fatal("GPU fallback lost the requested mode")
 	}
-	_, next := m.Update(presented{m.id})
+	_, next := m.Update(picture.PresentedMsg{Owner: m.pic, Generation: m.pic.Status().Generation})
 	if next != nil {
 		t.Fatal("idle scene scheduled another frame")
 	}
@@ -165,7 +167,7 @@ func TestPointPickingAndRayBox(t *testing.T) {
 	if m.Pick(-1, 0) != nil {
 		t.Fatal("outside pick")
 	}
-	d, ok := rayBox(math3d.Ray{Origin: math3d.Vec3{X: 0, Y: 0, Z: 3}, Direction: math3d.Vec3{X: 0, Y: 0, Z: -1}}, Box{Min: math3d.Vec3{X: -1, Y: -1, Z: -1}, Size: math3d.Vec3{X: 2, Y: 2, Z: 2}})
+	d, ok := rayBox(nt3dmath.Ray{Origin: nt3dmath.Vec3{X: 0, Y: 0, Z: 3}, Direction: nt3dmath.Vec3{X: 0, Y: 0, Z: -1}}, Box{Min: nt3dmath.Vec3{X: -1, Y: -1, Z: -1}, Size: nt3dmath.Vec3{X: 2, Y: 2, Z: 2}})
 	if !ok || d != 2 {
 		t.Fatal("ray box")
 	}
@@ -194,9 +196,6 @@ func TestSingleFlightAndForeignMessages(t *testing.T) {
 }
 
 func TestGlyphToggleDoesNotChangeRenderMode(t *testing.T) {
-	old := picture.KittySupported()
-	picture.ForceKittyCapability(picture.KittyCapabilitySupported)
-	defer picture.ForceKittyCapability(old)
 	m := New(40, 20, WithRenderMode(Software))
 	defer m.Close()
 	m.Update(tea.KeyPressMsg{Code: 'g', Text: "g"})
@@ -216,21 +215,6 @@ func TestBarNegativeExtentAndCategories(t *testing.T) {
 	}
 	if m.datumLabel(0, 1) != "b / week" {
 		t.Fatal("category label missing")
-	}
-}
-
-func TestKittyEntryDoesNotScheduleOldGlyphFrame(t *testing.T) {
-	old := picture.KittySupported()
-	picture.ForceKittyCapability(picture.KittyCapabilitySupported)
-	defer picture.ForceKittyCapability(old)
-	m := New(40, 20, WithRenderMode(Software))
-	defer m.Close()
-	m.pic.SetImage(image.NewRGBA(image.Rect(0, 0, 4, 4)))
-	if cmd := m.togglePicture(); cmd != nil {
-		t.Fatal("entering Kitty encoded old image concurrently")
-	}
-	if m.pic.Mode() != picture.PictureKitty {
-		t.Fatal("mode unchanged")
 	}
 }
 
@@ -262,73 +246,28 @@ func TestMousePickAndOrbit(t *testing.T) {
 }
 
 func TestKittyEncoding(t *testing.T) {
-	old := picture.KittySupported()
-	picture.ForceKittyCapability(picture.KittyCapabilitySupported)
-	t.Cleanup(func() { picture.ForceKittyCapability(old) })
-
-	for _, medium := range []picture.KittyMedium{picture.KittyMediumDirect, picture.KittyMediumSharedMemory} {
-		for _, tc := range []struct {
-			name   string
-			format picture.KittyFormat
-			opts   []Option
-		}{
-			{"default", picture.KittyFormatZlib, nil},
-			{"zlib", picture.KittyFormatZlib, []Option{WithKittyFormat(picture.KittyFormatZlib)}},
-			{"png", picture.KittyFormatPNG, []Option{WithKittyFormat(picture.KittyFormatPNG)}},
-			{"rgba", picture.KittyFormatRGBA, []Option{WithKittyFormat(picture.KittyFormatRGBA)}},
-		} {
-			t.Run(medium.String()+"/"+tc.name, func(t *testing.T) {
-				opts := append([]Option{WithRenderMode(Software), WithKittyMedium(medium)}, tc.opts...)
-				m := New(4, 4, opts...)
-				defer m.Close()
-				if got := m.pic.KittyFormat(); got != tc.format {
-					t.Fatalf("format = %v, want %v", got, tc.format)
+	for _, format := range []picture.KittyFormat{picture.KittyFormatZlib, picture.KittyFormatPNG, picture.KittyFormatRGBA} {
+		t.Run(format.String(), func(t *testing.T) {
+			session := picture.NewTerminalSession(picture.TerminalOptions{Kitty: picture.KittyCapabilitySupported, SharedMemory: picture.KittyCapabilityUnsupported})
+			defer session.Close()
+			m := New(8, 6, WithRenderMode(Software), WithTerminalSession(session), WithKittyFormat(format), WithKittyMedium(picture.KittyMediumSharedMemory))
+			defer m.Close()
+			m.started = true
+			_, cmd := m.Update(struct{}{})
+			messages := drain(t, m, cmd)
+			status := m.PictureStatus()
+			if status.Busy || status.Presented == 0 || status.Format != format || status.Medium != picture.KittyMediumDirect {
+				t.Fatalf("unexpected presentation: %+v", status)
+			}
+			found := false
+			for _, msg := range messages {
+				if raw, ok := msg.(tea.RawMsg); ok && strings.Contains(fmt.Sprint(raw.Msg), "\x1b_G") {
+					found = true
 				}
-				if got := m.pic.KittyMedium(); got != medium {
-					t.Fatalf("medium = %v, want %v", got, medium)
-				}
-				m.togglePicture()
-				img := image.NewRGBA(image.Rect(0, 0, 8, 16))
-				for i := 0; i < len(img.Pix); i += 4 {
-					copy(img.Pix[i:i+4], []byte{20, 40, 60, 255})
-				}
-				msg := m.present(img, img.Bounds())()
-				e, ok := msg.(encoded)
-				if !ok {
-					t.Fatalf("expected encoded frame, got %T", msg)
-				}
-				frame, ok := e.msg.(picture.KittyFrameMsg)
-				// No shared-memory support probe has been answered in this test
-				// process, so a requested shared medium must fall back to direct.
-				if !ok || frame.Medium != picture.KittyMediumDirect || frame.Format != tc.format || frame.APC == "" {
-					t.Fatalf("unexpected frame: %+v", frame)
-				}
-				_, apc, found := strings.Cut(frame.APC, "\x1b_G")
-				if !found {
-					t.Fatal("frame missing Kitty APC")
-				}
-				header, _, _ := strings.Cut(apc, ";")
-				want := "f=100"
-				if tc.format == picture.KittyFormatZlib {
-					want = "f=24"
-					if !strings.Contains(header, "o=z") {
-						t.Fatal("zlib frame missing compression flag")
-					}
-				} else if tc.format == picture.KittyFormatRGBA {
-					// RGBA (f=32) is the protocol default and may be omitted.
-					want = "s=32,v=32"
-					if strings.Contains(header, "f=") || strings.Contains(header, "o=z") {
-						t.Fatalf("unexpected raw RGBA header: %q", header)
-					}
-				}
-				if !strings.Contains(header, want) || strings.Contains(header, "t=s") {
-					t.Fatalf("unexpected transport header: %q", header)
-				}
-				m.Update(e)
-				if m.transport != tc.format.String() {
-					t.Fatalf("transport status = %q, want %q", m.transport, tc.format.String())
-				}
-			})
-		}
+			}
+			if !found {
+				t.Fatal("no Kitty output")
+			}
+		})
 	}
 }

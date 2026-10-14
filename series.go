@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 // Series supplies a named dataset as geometry. Geometry is compiled when data,
@@ -43,7 +43,7 @@ func validColumns(n int, optional ...int) error {
 
 func validFloat(v ...float32) bool {
 	for _, x := range v {
-		if !math3d.IsFinite(float64(x)) {
+		if !nt3dmath.IsFinite(float64(x)) {
 			return false
 		}
 	}
@@ -85,8 +85,8 @@ func (m *Model) SetPalette(cs []color.Color) tea.Cmd {
 	}
 	m.colors, m.series = converted, ss
 	m.err = nil
-	_ = m.resizePicture()
-	return m.changed(true)
+	resize := m.resizePicture()
+	return tea.Batch(resize, m.changed(true))
 }
 
 // SetSeries compiles geometry synchronously. Call it before Init or from Update.
@@ -136,10 +136,10 @@ func (m *Model) SetSeries(s Series) tea.Cmd {
 		}
 	}
 	m.series = next
-	_ = m.resizePicture()
+	resize := m.resizePicture()
 	m.err = nil
 	m.hover = nil
-	return m.changed(true)
+	return tea.Batch(resize, m.changed(true))
 }
 
 func compileColors(ss []series, cs Palette, shared bool, domain *Range) error {
@@ -213,12 +213,12 @@ func (m *Model) SetSharedColorDomain(enabled bool) tea.Cmd {
 func (m *Model) Clear() tea.Cmd {
 	m.series = nil
 	m.hover = nil
-	_ = m.resizePicture()
-	return m.changed(true)
+	resize := m.resizePicture()
+	return tea.Batch(resize, m.changed(true))
 }
 
-func (m *Model) bounds() math3d.AABB {
-	var b math3d.AABB
+func (m *Model) bounds() nt3dmath.AABB {
+	var b nt3dmath.AABB
 	for _, s := range m.series {
 		if s.geometry.Bounds.IsValid() {
 			b.Include(s.geometry.Bounds.Min)
@@ -229,4 +229,4 @@ func (m *Model) bounds() math3d.AABB {
 }
 
 // Bounds returns the combined data bounds of the current series.
-func (m *Model) Bounds() math3d.AABB { return m.bounds() }
+func (m *Model) Bounds() nt3dmath.AABB { return m.bounds() }

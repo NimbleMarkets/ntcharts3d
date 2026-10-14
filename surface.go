@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 // Surface is a regular XY grid stored by row. Sampler overrides Z and runs
@@ -62,7 +62,7 @@ func (s surfaceSeries) geometry(cs Palette, domain *[2]float32) (Geometry, error
 	if d.MinY == d.MaxY {
 		d.MinY, d.MaxY = -1, 1
 	}
-	if !math3d.IsFinite(d.MinX) || !math3d.IsFinite(d.MaxX) || !math3d.IsFinite(d.MinY) || !math3d.IsFinite(d.MaxY) || d.MaxX <= d.MinX || d.MaxY <= d.MinY {
+	if !nt3dmath.IsFinite(d.MinX) || !nt3dmath.IsFinite(d.MaxX) || !nt3dmath.IsFinite(d.MinY) || !nt3dmath.IsFinite(d.MaxY) || d.MaxX <= d.MinX || d.MaxY <= d.MinY {
 		return Geometry{}, fmt.Errorf("ntcharts3d: invalid surface bounds")
 	}
 	g := Geometry{Vertices: make([]Vertex, n), Material: cloneMaterial(d.Material), UV: slices.Clone(d.UV)}
@@ -70,7 +70,7 @@ func (s surfaceSeries) geometry(cs Palette, domain *[2]float32) (Geometry, error
 		g.UV = make([]UV, n)
 		for y := range d.NY {
 			for x := range d.NX {
-				g.UV[y*d.NX+x] = UV{float32(x) / float32(d.NX-1), 1 - float32(y)/float32(d.NY-1)}
+				g.UV[y*d.NX+x] = UV{U: float32(x) / float32(d.NX-1), V: 1 - float32(y)/float32(d.NY-1)}
 			}
 		}
 	}
@@ -91,7 +91,7 @@ func (s surfaceSeries) geometry(cs Palette, domain *[2]float32) (Geometry, error
 			if !validFloat(zs[i]) {
 				return Geometry{}, fmt.Errorf("ntcharts3d: non-finite surface datum %d", i)
 			}
-			p := math3d.Vec3{X: float32(px), Y: float32(py), Z: zs[i]}
+			p := nt3dmath.Vec3{X: float32(px), Y: float32(py), Z: zs[i]}
 			g.Vertices[i].Position = p
 			g.Bounds.Include(p)
 		}

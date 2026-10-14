@@ -5,7 +5,7 @@ package ntcharts3d
 import (
 	"math"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 // PickMsg identifies a clicked datum. SeriesIndex is the zero-based series
@@ -15,7 +15,7 @@ type PickMsg struct {
 	SeriesIndex int
 	SeriesName  string
 	Datum       int
-	Position    math3d.Vec3
+	Position    nt3dmath.Vec3
 	Label       string
 }
 
@@ -37,7 +37,7 @@ func (m *Model) Pick(x, y int) *PickMsg {
 	}
 	best := float32(math.Inf(1))
 	var hit *PickMsg
-	set := func(si, idx int, p math3d.Vec3, d float32) {
+	set := func(si, idx int, p nt3dmath.Vec3, d float32) {
 		if d >= best {
 			return
 		}
@@ -45,7 +45,7 @@ func (m *Model) Pick(x, y int) *PickMsg {
 		label := m.datumLabel(si, idx)
 		hit = &PickMsg{ModelID: m.id, SeriesIndex: si, SeriesName: m.series[si].name, Datum: idx, Position: p, Label: label}
 	}
-	test := func(si, idx int, p math3d.Vec3, radius float32) {
+	test := func(si, idx int, p nt3dmath.Vec3, radius float32) {
 		if m.clipsPlot() && !contains(f.Bounds, p) {
 			return
 		}
@@ -59,7 +59,7 @@ func (m *Model) Pick(x, y int) *PickMsg {
 			set(si, idx, p, depth)
 		}
 	}
-	testStroke := func(si, datum int, a, b math3d.Vec3, width, head float32) {
+	testStroke := func(si, datum int, a, b nt3dmath.Vec3, width, head float32) {
 		projected, ok := projectStroke(f, a, b)
 		if !ok {
 			return
@@ -136,7 +136,7 @@ func (m *Model) Pick(x, y int) *PickMsg {
 					if b.Min.Z < 0 {
 						value = b.Min.Z
 					}
-					set(si, b.Datum, math3d.Vec3{X: b.Min.X + .4, Y: b.Min.Y + .4, Z: value}, depth)
+					set(si, b.Datum, nt3dmath.Vec3{X: b.Min.X + .4, Y: b.Min.Y + .4, Z: value}, depth)
 				}
 			}
 		}
@@ -144,7 +144,7 @@ func (m *Model) Pick(x, y int) *PickMsg {
 	return hit
 }
 
-func rayBox(r math3d.Ray, b Box) (float32, bool) {
+func rayBox(r nt3dmath.Ray, b Box) (float32, bool) {
 	lo, hi := float32(0), float32(math.Inf(1))
 	o := []float32{r.Origin.X, r.Origin.Y, r.Origin.Z}
 	d := []float32{r.Direction.X, r.Direction.Y, r.Direction.Z}

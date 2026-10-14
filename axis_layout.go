@@ -8,7 +8,7 @@ import (
 	"math"
 	"unicode/utf8"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 type axisPoint struct{ x, y float32 }
@@ -27,7 +27,7 @@ type axisLayout struct {
 	labels    []axisText
 }
 type axisEdge struct {
-	start, end    math3d.Vec3
+	start, end    nt3dmath.Vec3
 	a, b, outward axisPoint
 	valid         bool
 }
@@ -49,7 +49,7 @@ func axisEdges(f Frame, width, height int) [3]axisEdge {
 			hi[i] += extent * .15
 		}
 	}
-	var corners [8]math3d.Vec3
+	var corners [8]nt3dmath.Vec3
 	var screen [8]axisPoint
 	var visible [8]bool
 	var center axisPoint
@@ -120,7 +120,7 @@ func axisEdges(f Frame, width, height int) [3]axisEdge {
 	return edges
 }
 
-func projectAxis(matrix math3d.Mat4, p math3d.Vec3, width, height int) (axisPoint, bool) {
+func projectAxis(matrix nt3dmath.Mat4, p nt3dmath.Vec3, width, height int) (axisPoint, bool) {
 	x, y, z, w := matrix.Transform(p)
 	if w <= 0 {
 		return axisPoint{}, false

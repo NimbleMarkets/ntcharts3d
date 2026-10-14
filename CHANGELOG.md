@@ -5,6 +5,22 @@ Versioning; the API may change during the v0.x series.
 
 ## [Unreleased]
 
+- Remove the local `math3d` package. Chart APIs, examples, and tests use
+  `nimbleterminal.dev/nt3d/math` (`nt3dmath`) directly.
+
+- Base rendering, shared math, geometry validation, and immutable texture storage
+  on nt3d while retaining the NimbleMarkets module and chart-specific APIs/picking.
+- Use ntpicture Picture and explicit TerminalSession; add WithTerminalSession,
+  WithImageIDAllocator, PictureStatus, and Dispose. Remove WithKittyID.
+- Preserve presentation cleanup commands across resize, legend, and render-mode
+  changes; forward late completions after disposal and use exact raster geometry.
+- Software surfaces retain all triangles and support engine near-plane clipping.
+- Migrate the transport diagnostic to ntpicture and ntgpuimage. Its P metric and
+  presentation_ms report replace encoding-only timing; raw APC byte counts are
+  no longer exposed by the presentation API.
+- Bootstrap committed dependency snapshots with task deps while the pinned
+  nt3d revision is unpublished; CI uses the same revisions.
+
 - Both browser examples use go-booba v0.9.2, whose bundled ghostty-web fixes
   restore animation in Safari and prevent grey placeholder cells while dragging.
 

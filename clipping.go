@@ -3,14 +3,14 @@
 package ntcharts3d
 
 import (
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
 	"image/color"
+	"nimbleterminal.dev/nt3d/math"
 )
 
-func contains(b math3d.AABB, p math3d.Vec3) bool {
+func contains(b nt3dmath.AABB, p nt3dmath.Vec3) bool {
 	return b.IsValid() && p.X >= b.Min.X && p.X <= b.Max.X && p.Y >= b.Min.Y && p.Y <= b.Max.Y && p.Z >= b.Min.Z && p.Z <= b.Max.Z
 }
-func clipBox(box Box, b math3d.AABB) (Box, bool) {
+func clipBox(box Box, b nt3dmath.AABB) (Box, bool) {
 	a, z, lo, hi := components(box.Min), components(box.Min.Add(box.Size)), components(b.Min), components(b.Max)
 	for i := range 3 {
 		a[i], z[i] = max(a[i], lo[i]), min(z[i], hi[i])
@@ -23,13 +23,13 @@ func clipBox(box Box, b math3d.AABB) (Box, bool) {
 }
 func interpolateVertex(a, b Vertex, t float64) Vertex {
 	mix := func(x, y float32) float32 { return float32(float64(x)*(1-t) + float64(y)*t) }
-	vec := func(x, y math3d.Vec3) math3d.Vec3 {
-		return math3d.Vec3{X: mix(x.X, y.X), Y: mix(x.Y, y.Y), Z: mix(x.Z, y.Z)}
+	vec := func(x, y nt3dmath.Vec3) nt3dmath.Vec3 {
+		return nt3dmath.Vec3{X: mix(x.X, y.X), Y: mix(x.Y, y.Y), Z: mix(x.Z, y.Z)}
 	}
 	channel := func(x, y uint8) uint8 { return uint8(float64(x)*(1-t) + float64(y)*t + .5) }
 	return Vertex{Position: vec(a.Position, b.Position), Normal: vec(a.Normal, b.Normal), Color: color.RGBA{R: channel(a.Color.R, b.Color.R), G: channel(a.Color.G, b.Color.G), B: channel(a.Color.B, b.Color.B), A: channel(a.Color.A, b.Color.A)}}
 }
-func clipLine(a, b Vertex, bounds math3d.AABB) (Vertex, Vertex, bool) {
+func clipLine(a, b Vertex, bounds nt3dmath.AABB) (Vertex, Vertex, bool) {
 	lo, hi := components(bounds.Min), components(bounds.Max)
 	for axis := range 3 {
 		for side := range 2 {
@@ -69,7 +69,7 @@ type meshVertex struct {
 	UV
 }
 
-func clipTriangle(a, b, c Vertex, bounds math3d.AABB) []Vertex {
+func clipTriangle(a, b, c Vertex, bounds nt3dmath.AABB) []Vertex {
 	p := clipTriangleUV(meshVertex{Vertex: a}, meshVertex{Vertex: b}, meshVertex{Vertex: c}, bounds)
 	out := make([]Vertex, len(p))
 	for i, v := range p {
@@ -77,7 +77,7 @@ func clipTriangle(a, b, c Vertex, bounds math3d.AABB) []Vertex {
 	}
 	return out
 }
-func clipTriangleUV(a, b, c meshVertex, bounds math3d.AABB) []meshVertex {
+func clipTriangleUV(a, b, c meshVertex, bounds nt3dmath.AABB) []meshVertex {
 	polygon := []meshVertex{a, b, c}
 	lo, hi := components(bounds.Min), components(bounds.Max)
 	for axis := range 3 {
@@ -102,7 +102,7 @@ func clipTriangleUV(a, b, c meshVertex, bounds math3d.AABB) []meshVertex {
 				if inside(previous) != inside(current) {
 					x, y := components(previous.Position)[axis], components(current.Position)[axis]
 					t := (float64(bound) - float64(x)) / (float64(y) - float64(x))
-					v := meshVertex{Vertex: interpolateVertex(previous.Vertex, current.Vertex, t), UV: UV{float32(float64(previous.U)*(1-t) + float64(current.U)*t), float32(float64(previous.V)*(1-t) + float64(current.V)*t)}}
+					v := meshVertex{Vertex: interpolateVertex(previous.Vertex, current.Vertex, t), UV: UV{U: float32(float64(previous.U)*(1-t) + float64(current.U)*t), V: float32(float64(previous.V)*(1-t) + float64(current.V)*t)}}
 					p := components(v.Position)
 					p[axis] = bound
 					v.Position = vector(p)
@@ -118,7 +118,7 @@ func clipTriangleUV(a, b, c meshVertex, bounds math3d.AABB) []meshVertex {
 	}
 	return polygon
 }
-func clipGeometry(g Geometry, b math3d.AABB) Geometry {
+func clipGeometry(g Geometry, b nt3dmath.AABB) Geometry {
 	if g.Bounds.IsValid() && contains(b, g.Bounds.Min) && contains(b, g.Bounds.Max) {
 		return g
 	}
@@ -169,7 +169,7 @@ func clipGeometry(g Geometry, b math3d.AABB) Geometry {
 	return out
 }
 
-func clipArrow(a Arrow, b math3d.AABB) (Arrow, bool) {
+func clipArrow(a Arrow, b nt3dmath.AABB) (Arrow, bool) {
 	start, end, ok := clipLine(Vertex{Position: a.Start}, Vertex{Position: a.End}, b)
 	if !ok {
 		return Arrow{}, false

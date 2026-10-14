@@ -3,10 +3,9 @@
 package ntcharts3d
 
 import (
-	"image/color"
 	"math"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 type strokePoint struct{ x, y, z, w float32 }
@@ -19,7 +18,7 @@ type screenStroke struct {
 // Clip depth before the perspective divide. Lateral viewport clipping is left
 // to rasterization so strokes just outside the viewport can still cover pixels.
 // The GPU uses the same three planes and interpolation in clipStroke.
-func projectStroke(f Frame, a, b math3d.Vec3) (s screenStroke, ok bool) {
+func projectStroke(f Frame, a, b nt3dmath.Vec3) (s screenStroke, ok bool) {
 	ax, ay, az, aw := f.Matrix.Transform(a)
 	bx, by, bz, bw := f.Matrix.Transform(b)
 	ca, cb := [4]float32{ax, ay, az, aw}, [4]float32{bx, by, bz, bw}
@@ -83,44 +82,4 @@ func (s screenStroke) head(size, width float32) (length, halfWidth float32) {
 func (s screenStroke) worldT(t float32) float32 {
 	q := (t / s.b.w) / ((1-t)/s.a.w + t/s.b.w)
 	return s.t0*(1-q) + s.t1*q
-}
-
-func rasterStroke(f Frame, a, b Vertex, width, headSize, bias float32, put func(int, int, float32, color.RGBA)) {
-	s, ok := projectStroke(f, a.Position, b.Position)
-	if !ok {
-		return
-	}
-	width = lineWidth(width)
-	hl, hw := s.head(headSize, width)
-	pad := max(width*.5, hw)
-	lowX := max(0, int(math.Floor(float64(min(s.a.x, s.b.x)-pad))))
-	highX := min(f.Width-1, int(math.Ceil(float64(max(s.a.x, s.b.x)+pad))))
-	lowY := max(0, int(math.Floor(float64(min(s.a.y, s.b.y)-pad))))
-	highY := min(f.Height-1, int(math.Ceil(float64(max(s.a.y, s.b.y)+pad))))
-	for y := lowY; y <= highY; y++ {
-		for x := lowX; x <= highX; x++ {
-			rx, ry := float32(x)+.5-s.a.x, float32(y)+.5-s.a.y
-			along, side := rx*s.dx+ry*s.dy, abs(-rx*s.dy+ry*s.dx)
-			t := float32(0)
-			if s.length < 1e-5 {
-				if abs(rx) > width*.5 || abs(ry) > width*.5 {
-					continue
-				}
-			} else {
-				if along < 0 || along > s.length {
-					continue
-				}
-				limit := width * .5
-				if hl > 0 && along > s.length-hl {
-					limit = hw * (s.length - along) / hl
-				}
-				if side > limit {
-					continue
-				}
-				t = along / s.length
-			}
-			c := lerpRGBA(a.Color, b.Color, float64(s.worldT(t)))
-			put(x, y, s.a.z*(1-t)+s.b.z*t+bias, c)
-		}
-	}
 }

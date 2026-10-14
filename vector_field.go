@@ -4,12 +4,12 @@ package ntcharts3d
 
 import (
 	"fmt"
-	"image/color"
 	"math"
+	"nimbleterminal.dev/nt3d"
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 const MaxVectors = 100_000
@@ -19,12 +19,7 @@ const MaxVectors = 100_000
 // head length in pixels, 0..64; zero draws only the shaft. Short projections
 // shrink the head to at most 45% of the projected length. End-on arrows appear
 // as a square of Width pixels. Datum identifies the original vector for picking.
-type Arrow struct {
-	Start, End      math3d.Vec3
-	Width, HeadSize float32
-	Color           color.RGBA
-	Datum           int
-}
+type Arrow = nt3d.Arrow
 
 // VectorField pairs Origins with Vectors. The tip is origin + vector * Scale.
 // Scale defaults to 1 and must be positive. Normalize makes every nonzero vector
@@ -33,7 +28,7 @@ type Arrow struct {
 // Optional Color (0xRRGGBBAA), ColorValue, and Labels have one entry per vector.
 // Without Color, the palette maps ColorValue or the original vector magnitude.
 type VectorField struct {
-	Origins, Vectors []math3d.Vec3
+	Origins, Vectors []nt3dmath.Vec3
 	Scale            float32
 	Normalize        bool
 	Width, HeadSize  float32
@@ -105,7 +100,7 @@ func (s vectorSeries) geometry(p Palette, domain *[2]float32) (Geometry, error) 
 	for i, v := range d.Vectors {
 		origin := d.Origins[i]
 		g.Bounds.Include(origin)
-		if v == (math3d.Vec3{}) {
+		if v == (nt3dmath.Vec3{}) {
 			continue
 		}
 		if d.Normalize {

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"image"
 
-	gpuimage "github.com/NimbleMarkets/go-gpuimage"
 	"github.com/gogpu/gputypes"
 	"github.com/gogpu/wgpu"
+	gpuimage "nimbleterminal.dev/ntgpuimage"
 )
 
 //go:embed shader.wgsl

@@ -39,5 +39,6 @@ func (m *Model) Snapshot(width, height int) (image.Image, RenderMode, error) {
 			return img, WebGPU, nil
 		}
 	}
-	return softwareRender(f), Software, nil
+	img, err := renderSoftware(f)
+	return img, Software, err
 }

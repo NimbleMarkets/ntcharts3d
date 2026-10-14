@@ -7,6 +7,7 @@ Install [TinyGo 0.43.0](https://tinygo.org/getting-started/install/), then run
 from the repository root:
 
 ```sh
+task deps
 task build-wasm-site
 task serve-wasm-site
 ```
@@ -48,6 +49,15 @@ workflow verifies the complete TinyGo build and uploads `web/dist/` as its Pages
 artifact. Browser checks are still needed when compiler or terminal pins change.
 
 ## Local validation
+
+On 2026-10-14, the nt3d/ntpicture migration passed `task ci`, `task test-gpu`
+(Apple M5 Max), `task build-wasm-site`, and `actionlint`. In Chrome, Go 1.26.8
+and TinyGo 0.43.0 rendered with WebGPU and Kitty shared memory. The smoke check
+covered scatter/surface/bar/vector chart switching, terrain texture replacement,
+glyph fallback, and returning to Kitty with the text legend's narrower viewport.
+These are local results; hosted CI still requires the pinned nt3d commit to be
+published upstream. Earlier release validation follows.
+
 
 Go 1.26.8 and TinyGo 0.42.0 both rendered with Apple WebGPU in Chrome under
 the `/ntcharts3d/` prefix. Browser checks confirmed shared-memory commands,

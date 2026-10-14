@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 func TestNumericTicks(t *testing.T) {
@@ -51,7 +51,7 @@ func TestNumericTicks(t *testing.T) {
 			t.Fatal("unbounded ticks")
 		}
 		for _, tick := range ticks {
-			if !math3d.IsFinite(float64(tick.Value)) {
+			if !nt3dmath.IsFinite(float64(tick.Value)) {
 				t.Fatal("non-finite tick")
 			}
 		}
@@ -102,9 +102,9 @@ func TestAxesCategoryOwnershipAndValidation(t *testing.T) {
 }
 
 func axisTestFrame() Frame {
-	var b math3d.AABB
-	b.Include(math3d.Vec3{X: -1, Y: -1, Z: -1})
-	b.Include(math3d.Vec3{X: 1, Y: 1, Z: 1})
+	var b nt3dmath.AABB
+	b.Include(nt3dmath.Vec3{X: -1, Y: -1, Z: -1})
+	b.Include(nt3dmath.Vec3{X: 1, Y: 1, Z: 1})
 	f := Frame{Width: 800, Height: 600, Bounds: b}
 	for i := range 3 {
 		f.Axes[i] = AxisFrame{Name: axisName(i), Ticks: numericTicks(-1, 1, 5, nil)}
@@ -169,8 +169,8 @@ func TestAxisLayoutTinyAndDegenerate(t *testing.T) {
 			}
 		}
 	}
-	f.Bounds = math3d.AABB{}
-	f.Bounds.Include(math3d.Vec3{})
+	f.Bounds = nt3dmath.AABB{}
+	f.Bounds.Include(nt3dmath.Vec3{})
 	n, _, _ := f.Bounds.Normalization()
 	f.Matrix = DefaultCamera().Matrix(1.6).Mul(n)
 	if len(axisRects(f)) == 0 {

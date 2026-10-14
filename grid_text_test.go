@@ -1,8 +1,8 @@
 package ntcharts3d
 
 import (
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
 	"image/color"
+	"nimbleterminal.dev/nt3d/math"
 	"reflect"
 	"sync"
 	"testing"
@@ -57,9 +57,9 @@ func TestGridFollowsBackPlanes(t *testing.T) {
 func gridOcclusionFrame() Frame {
 	red := color.RGBA{R: 255, A: 255}
 	green := color.RGBA{G: 255, A: 255}
-	return Frame{Width: 200, Height: 150, Revision: 1, Matrix: math3d.Identity(), Background: color.RGBA{R: 240, G: 240, B: 240, A: 255},
-		Geometry:  []Geometry{{Points: []Point{{Position: math3d.Vec3{Z: .2}, Radius: 8, Color: red}}}},
-		GridLines: []Vertex{{Position: math3d.Vec3{X: -.8, Z: .8}, Color: green}, {Position: math3d.Vec3{X: .8, Z: .8}, Color: green}},
+	return Frame{Width: 200, Height: 150, Revision: 1, Matrix: nt3dmath.Identity(), Background: color.RGBA{R: 240, G: 240, B: 240, A: 255},
+		Geometry:  []Geometry{{Points: []Point{{Position: nt3dmath.Vec3{Z: .2}, Radius: 8, Color: red}}}},
+		GridLines: []Vertex{{Position: nt3dmath.Vec3{X: -.8, Z: .8}, Color: green}, {Position: nt3dmath.Vec3{X: .8, Z: .8}, Color: green}},
 	}
 }
 func TestSoftwareGridOcclusion(t *testing.T) {

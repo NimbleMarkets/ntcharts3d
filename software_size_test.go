@@ -7,19 +7,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	picture "nimbleterminal.dev/ntpicture"
 )
 
 // kitty is a chart drawn in software for a terminal that shows pictures.
 // At 100 by 40 cells of 8 by 16 pixels, its plot is 800 by 608.
 func kitty(t *testing.T) *Model {
 	t.Helper()
-	old := picture.KittySupported()
-	picture.ForceKittyCapability(picture.KittyCapabilitySupported)
-	t.Cleanup(func() { picture.ForceKittyCapability(old) })
-	m := New(100, 40, WithRenderMode(Software))
+	session := picture.NewTerminalSession(picture.TerminalOptions{Kitty: picture.KittyCapabilitySupported, SharedMemory: picture.KittyCapabilityUnsupported})
+	t.Cleanup(session.Close)
+	m := New(100, 40, WithRenderMode(Software), WithTerminalSession(session))
 	t.Cleanup(func() { m.Close() })
-	m.togglePicture()
+	drain(t, m, m.togglePicture())
 	if m.pic.Mode() != picture.PictureKitty {
 		t.Fatal("not in Kitty mode")
 	}
@@ -27,9 +26,11 @@ func kitty(t *testing.T) *Model {
 }
 
 // took tells the chart that the frame it asked for took this long to draw.
-func took(m *Model, elapsed time.Duration) {
+func took(t *testing.T, m *Model, elapsed time.Duration) {
 	f := m.frame()
-	m.Update(rendered{id: m.id, seq: m.seq, frame: image.NewRGBA(image.Rect(0, 0, f.Width, f.Height)), renderMode: Software, elapsed: elapsed})
+	_, cmd := m.Update(rendered{id: m.id, seq: m.seq, frame: image.NewRGBA(image.Rect(0, 0, f.Width, f.Height)), renderMode: Software, elapsed: elapsed})
+	drain(t, m, cmd)
+	drain(t, m, m.resolution())
 }
 
 func area(m *Model) int { f := m.frame(); return f.Width * f.Height }
@@ -50,7 +51,7 @@ func TestSoftwareDrawsPicturesAtFullSize(t *testing.T) {
 func TestSlowSoftwareFramesShrinkBeforeGivingUp(t *testing.T) {
 	m := kitty(t)
 	full := area(m)
-	took(m, 200*time.Millisecond)
+	took(t, m, 200*time.Millisecond)
 	if got := area(m); got >= full || m.RenderMode() != Software {
 		t.Fatalf("after a slow frame: area %d of %d, mode %v", got, full, m.RenderMode())
 	}
@@ -59,7 +60,7 @@ func TestSlowSoftwareFramesShrinkBeforeGivingUp(t *testing.T) {
 		t.Fatalf("area %d of %d", got, full)
 	}
 	for range 20 {
-		took(m, 200*time.Millisecond)
+		took(t, m, 200*time.Millisecond)
 		if f := m.frame(); f.Width <= 320 && f.Height <= 200 {
 			break
 		}
@@ -69,12 +70,12 @@ func TestSlowSoftwareFramesShrinkBeforeGivingUp(t *testing.T) {
 		t.Fatalf("the smallest frame is %d×%d, mode %v", f.Width, f.Height, m.RenderMode())
 	}
 	// Only at its smallest does a slow frame count toward wireframe.
-	took(m, 200*time.Millisecond)
-	took(m, 200*time.Millisecond)
+	took(t, m, 200*time.Millisecond)
+	took(t, m, 200*time.Millisecond)
 	if m.RenderMode() != Software {
 		t.Fatal("gave up after two slow frames")
 	}
-	took(m, 200*time.Millisecond)
+	took(t, m, 200*time.Millisecond)
 	if m.RenderMode() != Wireframe || m.RequestedRenderMode() != Software {
 		t.Fatalf("mode %v, requested %v", m.RenderMode(), m.RequestedRenderMode())
 	}
@@ -83,26 +84,26 @@ func TestSlowSoftwareFramesShrinkBeforeGivingUp(t *testing.T) {
 func TestFastSoftwareFramesGrowBack(t *testing.T) {
 	m := kitty(t)
 	full := area(m)
-	took(m, 400*time.Millisecond)
+	took(t, m, 400*time.Millisecond)
 	small := area(m)
 	m.dirty = false // As once the frame has been shown.
-	took(m, 30*time.Millisecond)
+	took(t, m, 30*time.Millisecond)
 	if area(m) != small || m.dirty {
 		t.Fatal("a frame that took neither long nor no time at all changed the size")
 	}
-	took(m, 5*time.Millisecond)
+	took(t, m, 5*time.Millisecond)
 	if got := area(m); got <= small || !m.dirty {
 		t.Fatalf("a fast frame: area %d after %d, dirty=%v: the picture should be drawn again, larger", got, small, m.dirty)
 	}
 	for range 20 {
-		took(m, 5*time.Millisecond)
+		took(t, m, 5*time.Millisecond)
 	}
 	if got := area(m); got != full {
 		t.Fatalf("area %d, want the full %d", got, full)
 	}
 	// At full size there is nothing more to draw.
 	m.dirty = false
-	took(m, 5*time.Millisecond)
+	took(t, m, 5*time.Millisecond)
 	if m.dirty || area(m) != full {
 		t.Fatal("a chart at rest went on drawing")
 	}
@@ -111,8 +112,8 @@ func TestFastSoftwareFramesGrowBack(t *testing.T) {
 func TestChoosingSoftwareStartsAtFullSize(t *testing.T) {
 	m := kitty(t)
 	full := area(m)
-	took(m, 400*time.Millisecond)
-	m.SetRenderMode(Software)
+	took(t, m, 400*time.Millisecond)
+	drain(t, m, m.SetRenderMode(Software))
 	if got := area(m); got != full {
 		t.Fatalf("area %d, want %d", got, full)
 	}

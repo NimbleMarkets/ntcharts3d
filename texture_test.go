@@ -8,7 +8,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 func testTexture(t *testing.T, c color.RGBA) *Texture {
@@ -39,17 +39,6 @@ func TestTextureOwnershipAndValidation(t *testing.T) {
 	if tex.Bounds() != image.Rect(0, 0, 2, 2) || tex.At(0, 0) != (color.RGBA{255, 0, 0, 255}) {
 		t.Fatal("snapshot bounds or ownership")
 	}
-	for i, uv := range []UV{{0, 0}, {1, 0}, {0, 1}, {1, 1}} {
-		if got := tex.sample(uv); got != (color.RGBA(colors[i])) {
-			t.Fatal("orientation", uv, got)
-		}
-	}
-	if got := tex.sample(UV{.5, .5}); got != (color.RGBA{128, 128, 128, 255}) {
-		t.Fatal("bilinear", got)
-	}
-	if tex.sample(UV{-2, 3}) != tex.sample(UV{0, 1}) {
-		t.Fatal("clamp")
-	}
 	semi := image.NewNRGBA64(image.Rect(0, 0, 1, 1))
 	semi.SetNRGBA64(0, 0, color.NRGBA64{A: 65534})
 	var nilImage *image.RGBA
@@ -76,7 +65,7 @@ func TestTexturedSurfaceAndUpdates(t *testing.T) {
 	if g.Material.Texture != tex || g.HasColorRange {
 		t.Fatal("material ownership or legend")
 	}
-	want := []UV{{0, 1}, {1, 1}, {0, 0}, {1, 0}}
+	want := []UV{{U: 0, V: 1}, {U: 1, V: 1}, {U: 0, V: 0}, {U: 1, V: 0}}
 	for i, uv := range g.UV {
 		if uv != want[i] {
 			t.Fatal("default UV", uv)
@@ -114,7 +103,7 @@ func TestTexturedSurfaceAndUpdates(t *testing.T) {
 }
 func TestTextureUVValidationAndClipping(t *testing.T) {
 	tex := testTexture(t, color.RGBA{255, 255, 255, 255})
-	for _, uv := range [][]UV{{{0, 0}}, {{0, 0}, {0, 0}, {0, 0}, {float32(math.NaN()), 0}}} {
+	for _, uv := range [][]UV{{{U: 0, V: 0}}, {{U: 0, V: 0}, {U: 0, V: 0}, {U: 0, V: 0}, {U: float32(math.NaN()), V: 0}}} {
 		m := New(20, 10)
 		m.SetSurface("bad", Surface{NX: 2, NY: 2, Z: make([]float32, 4), UV: uv, Material: &Material{Texture: tex}})
 		if m.Err() == nil {
@@ -126,9 +115,9 @@ func TestTextureUVValidationAndClipping(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var bounds math3d.AABB
-	bounds.Include(math3d.Vec3{X: -.5, Y: -.5, Z: -1})
-	bounds.Include(math3d.Vec3{X: .5, Y: .5, Z: 1})
+	var bounds nt3dmath.AABB
+	bounds.Include(nt3dmath.Vec3{X: -.5, Y: -.5, Z: -1})
+	bounds.Include(nt3dmath.Vec3{X: .5, Y: .5, Z: 1})
 	clipped := clipGeometry(g, bounds)
 	if len(clipped.Indices) == 0 || len(clipped.UV) != len(clipped.Vertices) {
 		t.Fatal("missing clipped mesh")
@@ -155,7 +144,7 @@ func textureTestFrame(t *testing.T) Frame {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return Frame{Width: 100, Height: 100, Revision: 1, Matrix: math3d.Identity(), Geometry: []Geometry{g}, Background: color.RGBA{A: 255}, Light: Light{Direction: math3d.Vec3{Z: -1}, Ambient: .25}}
+	return Frame{Width: 100, Height: 100, Revision: 1, Matrix: nt3dmath.Identity(), Geometry: []Geometry{g}, Background: color.RGBA{A: 255}, Light: Light{Direction: nt3dmath.Vec3{Z: -1}, Ambient: .25}}
 }
 func TestSoftwareTextureOrientationAndLighting(t *testing.T) {
 	f := textureTestFrame(t)
@@ -184,7 +173,9 @@ func TestSoftwarePerspectiveTexture(t *testing.T) {
 	worldX := ndcX / (1 - .5*ndcX)
 	w := 1 + .5*worldX
 	worldY := (1 - 2*(float32(y)+.5)/100) * w
-	want := f.Geometry[0].Material.Texture.sample(UV{(worldX + 1) / 2, (1 - worldY) / 2})
+	// The 2x2 texture interpolates its four known corner colors.
+	u, v := float64((worldX+1)/2)*2-.5, float64((1-worldY)/2)*2-.5
+	want := color.RGBA{uint8(255*((1-u)*(1-v)+u*v) + .5), uint8(255*u + .5), uint8(255*v + .5), 255}
 	got := img.At(x, y).(color.RGBA)
 	if abs(float32(got.R)-float32(want.R)) > 1 || abs(float32(got.G)-float32(want.G)) > 1 || abs(float32(got.B)-float32(want.B)) > 1 {
 		t.Fatal("perspective interpolation", got, want)

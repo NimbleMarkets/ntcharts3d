@@ -20,10 +20,11 @@ One `ntcharts3d.Model` combines named scatter, surface, bar, line, vector-field,
 with a shared camera. Charts support orbit, pan, zoom, picking, color legends,
 hover highlights, fixed axis and color ranges, plot proportions, and in-chart
 axis labels with optional back-plane grids.
-Rendering uses go-gpuimage v0.1.0, with software and wireframe fallbacks.
-ntcharts handles terminal images and glyph output.
+Rendering uses `nimbleterminal.dev/nt3d` for WebGPU, software, and wireframe.
+`nimbleterminal.dev/ntpicture` owns terminal sessions, image transport, and glyph output.
+The chart module remains `github.com/NimbleMarkets/ntcharts3d`.
 
-Install **v0.2.2** with:
+The latest released chart API before this migration is **v0.2.2**:
 
 ```sh
 go get github.com/NimbleMarkets/ntcharts3d@v0.2.2
@@ -36,6 +37,7 @@ See the [changelog](CHANGELOG.md), [API guide](API.md),
 ## Run locally
 
 ```sh
+bash scripts/bootstrap-deps.sh  # extract committed pins from ../nt3d and ../ntpicture
 go test -race ./...
 cd examples/gallery
 go run .
@@ -59,6 +61,7 @@ repository root. `task` builds the library and native examples into `bin/`.
 | Command | Purpose |
 | --- | --- |
 | `task list` | List all tasks |
+| `task deps` | Extract pinned engine/picture sources from sibling repositories |
 | `task ci` | Check formatting, modules, race tests, vet, and native/WASM builds |
 | `task test-gpu` | Run hardware GPU tests without the race detector |
 | `task gallery -- -render-mode software` | Run the gallery with flags |
@@ -81,8 +84,19 @@ The Pages gallery uses Kitty shared memory with the bundled terminal assets.
 
 ## Dependencies
 
-The library and both examples require Go 1.26.8 and pin NTCharts v2.8.0,
-which includes the Kitty transport APIs. No local NTCharts checkout is needed.
+The library and examples require Go 1.26.8. This development migration pins
+`nt3d` at `972f2a4220a4` and `ntpicture` at `1a8609901740`; `ntcanvas v0.1.0`
+and `ntgpuimage v0.2.0` resolve as normal Go modules. NTCharts is no longer a dependency.
+
+Until the engine pin is published, module replacements point into ignored
+`.deps/` directories. Run `task deps` (or the shell script above) to extract
+**committed** snapshots from sibling repositories. It does not copy working-tree
+edits or modify either sibling. `NT3D_SOURCE` and `NTPICTURE_SOURCE` override
+those repository paths. CI checks out the same commits into `.deps/`.
+The nt3d pin was not available upstream when this migration was validated;
+GitHub Actions requires that commit to be published. Before a library release,
+publish the dependency pins, remove these local replacements, and regenerate
+module checksums in all three modules.
 
 The gallery's `ntcharts3d => ../..` replacement uses this repository directly.
 Both examples use go-booba v0.9.2 and its Bubble Tea WASM fork at `c397c32a5074`.
@@ -94,10 +108,25 @@ with `task web-assets` after changing the booba pin.
 
 ## Ownership
 
-- ntcharts3d: chart geometry, interactions, legends, and rendering.
-- go-gpuimage: GPU execution, textures, and readback.
-- ntcharts: terminal image transport and canvas.
+- ntcharts3d: series, chart frames, axes, palettes, clipping, picking, hover, and layout.
+- nt3d: geometry validation, shared math and textures, GPU/software/wireframe rendering.
+- ntpicture: explicit terminal sessions, encoding, placement IDs, and presentation lifecycle.
+- ntcanvas: terminal wireframe surfaces through nt3d.
+- ntgpuimage: GPU execution and readback through nt3d (directly in the transport diagnostic).
 - go-booba and the browser terminal: WASM hosting and Kitty image display.
+
+The chart uses nt3d's frame/render interfaces directly. Its custom `Renderer`,
+`Frame`, picking, and camera controls remain chart APIs; `nt3d/widget` is not
+embedded. This preserves data-space surface-vertex picking, bar values, and
+chart viewport behavior without coupling the generic widget to chart metadata.
+
+Use `nimbleterminal.dev/nt3d/math` (package `nt3dmath`) directly for `Vec3`,
+`Mat4`, `Ray`, and `AABB`; the local `math3d` package has been removed. Chart
+primitive types still forward to engine types. Transport options now use
+`nimbleterminal.dev/ntpicture`. Replace `WithKittyID` with
+`WithImageIDAllocator`; share `WithTerminalSession` between charts on one
+connection. Execute `Dispose()` before quitting, then `Close()` after the event
+loop exits. See [lifecycle details](API.md#terminal-session-and-cleanup).
 
 Extracted from ntcharts `wgpu-shared-memory` at `2ed8872`.
 MIT license; existing copyright notices are preserved.

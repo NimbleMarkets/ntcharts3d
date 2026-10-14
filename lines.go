@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 const MaxLineSegments = 512 * 512
@@ -19,7 +19,7 @@ const MaxLineSegments = 512 * 512
 // Color uses 0xRRGGBBAA (alpha ignored). Without Color, the palette maps
 // ColorValue, or each segment's midpoint Z when ColorValue is absent.
 type Lines struct {
-	Start, End []math3d.Vec3
+	Start, End []nt3dmath.Vec3
 	Width      float32
 	Color      []uint32
 	ColorValue []float32
@@ -88,8 +88,8 @@ func (s lineSeries) geometry(p Palette, domain *[2]float32) (Geometry, error) {
 	}
 	return g, nil
 }
-func finiteVec(v math3d.Vec3) bool { return validFloat(v.X, v.Y, v.Z) }
-func validWidth(w float32) bool    { return validFloat(w) && (w == 0 || w >= 1 && w <= 32) }
+func finiteVec(v nt3dmath.Vec3) bool { return validFloat(v.X, v.Y, v.Z) }
+func validWidth(w float32) bool      { return validFloat(w) && (w == 0 || w >= 1 && w <= 32) }
 func lineWidth(w float32) float32 {
 	if w == 0 {
 		return 1

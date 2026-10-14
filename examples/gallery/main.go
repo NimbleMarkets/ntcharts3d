@@ -7,13 +7,13 @@ import (
 	"flag"
 	"fmt"
 	booba "github.com/NimbleMarkets/go-booba"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
 	"github.com/aquilax/go-perlin"
 	zone "github.com/lrstanley/bubblezone/v2"
 	"math"
 	"math/rand/v2"
+	"nimbleterminal.dev/nt3d/math"
+	picture "nimbleterminal.dev/ntpicture"
 	"os"
 	"runtime"
 	"time"
@@ -43,7 +43,7 @@ func (g *gallery) load() tea.Cmd {
 	}
 	legend := g.scene.SetColorLegend(legendTitle)
 	axes := g.scene.SetAxes(ntcharts3d.Axes{})
-	aspect := g.scene.SetPlotAspect(math3d.Vec3{})
+	aspect := g.scene.SetPlotAspect(nt3dmath.Vec3{})
 	domain := g.scene.SetColorDomain(&ntcharts3d.Range{Min: -1, Max: 1})
 	switch g.tab {
 	case 0:
@@ -78,7 +78,7 @@ func (g *gallery) load() tea.Cmd {
 			Y: ntcharts3d.Axis{Name: "Day", Categories: []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}},
 			Z: ntcharts3d.Axis{Name: "Value", Range: &ntcharts3d.Range{Min: 0, Max: 4}},
 		})
-		aspect = g.scene.SetPlotAspect(math3d.Vec3{X: 1, Y: .7, Z: .6})
+		aspect = g.scene.SetPlotAspect(nt3dmath.Vec3{X: 1, Y: .7, Z: .6})
 		domain = g.scene.SetColorDomain(&ntcharts3d.Range{Min: 0, Max: 4})
 		for y := 0; y < 7; y++ {
 			for x := 0; x < 12; x++ {
@@ -101,7 +101,7 @@ func (g *gallery) Init() tea.Cmd {
 func (g *gallery) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch v := msg.(type) {
 	case quitMsg:
-		return g, tea.Quit
+		return g, tea.Sequence(g.scene.Dispose(), tea.Quit)
 	case ntcharts3d.PickMsg:
 		g.pick = fmt.Sprintf("Picked %s (series %d) datum %d %s", v.SeriesName, v.SeriesIndex, v.Datum, v.Label)
 		return g, nil
@@ -110,7 +110,7 @@ func (g *gallery) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		switch v.String() {
 		case "q", "ctrl+c":
-			return g, tea.Quit
+			return g, tea.Sequence(g.scene.Dispose(), tea.Quit)
 		case "tab":
 			g.tab = (g.tab + 1) % 5
 			return g, g.load()

@@ -5,13 +5,21 @@ package ntcharts3d
 import (
 	"image/color"
 
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	zone "github.com/lrstanley/bubblezone/v2"
+	picture "nimbleterminal.dev/ntpicture"
 )
 
 type Option func(*Model)
 
-func WithKittyID(id int) Option          { return func(m *Model) { m.kittyID = id } }
+// WithTerminalSession shares terminal discovery and cell geometry. The caller
+// owns supplied sessions and closes them after disposing all charts.
+func WithTerminalSession(s *picture.TerminalSession) Option { return func(m *Model) { m.session = s } }
+
+// WithImageIDAllocator supplies fresh positive 24-bit image IDs for placements.
+func WithImageIDAllocator(next func() (int, error)) Option {
+	return func(m *Model) { m.nextImageID = next }
+}
+
 func WithOrtho() Option                  { return func(m *Model) { m.camera.Projection = Orthographic } }
 func WithProjection(p Projection) Option { return func(m *Model) { m.camera.Projection = p } }
 func WithAutoRotate(on bool) Option      { return func(m *Model) { m.camera.AutoRotate = on } }

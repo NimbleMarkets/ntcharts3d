@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
+	picture "nimbleterminal.dev/ntpicture"
 )
 
 func (m *Model) View() tea.View {
@@ -32,7 +32,7 @@ func (m *Model) View() tea.View {
 	if m.err != nil {
 		title += " · " + m.err.Error()
 	}
-	body := m.pic.View().Content
+	body := m.pic.View()
 	if m.renderMode == Wireframe {
 		body = m.wire
 	}

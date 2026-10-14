@@ -6,7 +6,7 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 // RenderMode selects WebGPU, software, or wireframe rendering.
@@ -31,7 +31,7 @@ func (l RenderMode) String() string {
 }
 
 type Light struct {
-	Direction math3d.Vec3
+	Direction nt3dmath.Vec3
 	Ambient   float32
 }
 
@@ -39,13 +39,13 @@ type Light struct {
 // when TextureRevision changes.
 type Frame struct {
 	Width, Height   int
-	Matrix          math3d.Mat4
+	Matrix          nt3dmath.Mat4
 	Revision        uint64
 	TextureRevision uint64
-	Bounds          math3d.AABB  // Plot bounds after fixed axis ranges.
-	Axes            [3]AxisFrame // X, Y, Z; separate from cached series geometry.
-	Geometry        []Geometry   // Clipped geometry; mesh normals account for plot proportions.
-	GridLines       []Vertex     // Dynamic pairs of back-plane grid endpoints.
+	Bounds          nt3dmath.AABB // Plot bounds after fixed axis ranges.
+	Axes            [3]AxisFrame  // X, Y, Z; separate from cached series geometry.
+	Geometry        []Geometry    // Clipped geometry; mesh normals account for plot proportions.
+	GridLines       []Vertex      // Dynamic pairs of back-plane grid endpoints.
 	Emphasis        *EmphasisFrame
 	ColorLegends    []ColorLegend
 	Background      color.RGBA

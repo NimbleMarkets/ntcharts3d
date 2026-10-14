@@ -2,12 +2,13 @@ package main
 
 import (
 	"image"
+	"reflect"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	picture "nimbleterminal.dev/ntpicture"
 
-	gpuimage "github.com/NimbleMarkets/go-gpuimage"
+	gpuimage "nimbleterminal.dev/ntgpuimage"
 )
 
 type fakeRenderer struct {
@@ -25,6 +26,7 @@ func sized(t *testing.T, w, h int) (*model, *fakeRenderer) {
 	t.Helper()
 	fr := &fakeRenderer{}
 	m := newModel(fr, picture.KittyFormatPNG, picture.KittyMediumDirect, 60, 16)
+	t.Cleanup(func() { m.Dispose() })
 	m.Update(tea.WindowSizeMsg{Width: w, Height: h})
 	return m, fr
 }
@@ -119,28 +121,81 @@ func TestOrbitKeysChangeCamera(t *testing.T) {
 func TestMediumTogglePreservesDirectFormat(t *testing.T) {
 	m := newModel(&fakeRenderer{}, picture.KittyFormatRGBA, picture.KittyMediumDirect, 60, 16)
 	m.Update(tea.KeyPressMsg{Code: 'm', Text: "m"})
-	if m.pic.KittyMedium() != picture.KittyMediumSharedMemory || m.pic.KittyFormat() != picture.KittyFormatRGBA {
+	if m.medium != picture.KittyMediumSharedMemory || m.format != picture.KittyFormatRGBA {
 		t.Fatal("toggle lost the direct format")
 	}
 	m.Update(tea.KeyPressMsg{Code: 'm', Text: "m"})
-	if m.pic.KittyMedium() != picture.KittyMediumDirect {
+	if m.medium != picture.KittyMediumDirect {
 		t.Fatal("toggle did not return to direct")
 	}
 }
 
-func TestEncodedPathUsesActualMedium(t *testing.T) {
-	m := newModel(&fakeRenderer{}, picture.KittyFormatPNG, picture.KittyMediumSharedMemory, 60, 16)
-	for _, tc := range []struct {
-		medium picture.KittyMedium
-		format picture.KittyFormat
-		want   string
-	}{
-		{picture.KittyMediumSharedMemory, picture.KittyFormatRGBA, "shm"},
-		{picture.KittyMediumDirect, picture.KittyFormatPNG, "png"},
-	} {
-		m.Update(encodedMsg{frame: picture.KittyFrameMsg{Medium: tc.medium, Format: tc.format, APC: "test"}})
-		if m.transport != tc.want || m.encodedFrames[tc.want] != 1 || m.bytes != 4 {
-			t.Fatalf("wrong path: %s", m.transport)
+// Execute Bubble Tea batches/sequences and route their messages through Update.
+// Reflection unwraps Tea's unexported sequence slice without depending on its name.
+func drain(t *testing.T, m *model, cmd tea.Cmd) []tea.Msg {
+	var messages []tea.Msg
+	t.Helper()
+	count := 0
+	var run func(tea.Cmd)
+	run = func(cmd tea.Cmd) {
+		if cmd == nil {
+			return
+		}
+		count++
+		if count > 200 {
+			t.Fatal("command loop did not settle")
+		}
+		msg := cmd()
+		messages = append(messages, msg)
+		if msg == nil {
+			return
+		}
+		v := reflect.ValueOf(msg)
+		if v.Kind() == reflect.Slice && v.Type().Elem() == reflect.TypeOf(tea.Cmd(nil)) {
+			for i := 0; i < v.Len(); i++ {
+				run(v.Index(i).Interface().(tea.Cmd))
+			}
+			return
+		}
+		if _, ok := msg.(tea.RawMsg); ok {
+			return
+		}
+		_, next := m.Update(msg)
+		run(next)
+	}
+	run(cmd)
+	return messages
+}
+
+func TestPictureLifecycleAndTransportSwitching(t *testing.T) {
+	t.Setenv("NTCHARTS_KITTY", "supported")
+	m := newModel(&fakeRenderer{}, picture.KittyFormatPNG, picture.KittyMediumDirect, 60, 16)
+	defer m.Dispose()
+	m.playing = false
+	_, cmd := m.Update(tea.WindowSizeMsg{Width: 40, Height: 12})
+	drain(t, m, cmd)
+	if s := m.pic.Status(); s.Busy || s.Presented == 0 || m.transport != "png" {
+		t.Fatalf("initial frame: %+v path=%s", s, m.transport)
+	}
+	for _, key := range []rune{'t', 'm', 't', 'm', 't', 'm'} {
+		_, cmd = m.Update(tea.KeyPressMsg{Code: key, Text: string(key)})
+		drain(t, m, cmd)
+		if s := m.pic.Status(); s.Busy || s.Presented == 0 || s.Format != m.format {
+			t.Fatalf("switch %c: %+v", key, s)
+		}
+		for _, p := range m.pictures {
+			if p != m.pic && p.View() != "" {
+				t.Fatal("hidden transport retained its placement")
+			}
+		}
+	}
+	if len(m.pictures) > 4 {
+		t.Fatal("transport toggles retained unbounded pictures")
+	}
+	drain(t, m, m.Dispose())
+	for _, p := range m.pictures {
+		if p.View() != "" || p.Status().Busy {
+			t.Fatal("dispose did not settle")
 		}
 	}
 }

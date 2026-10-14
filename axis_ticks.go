@@ -6,12 +6,12 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 func numericTicks(minimum, maximum float32, count int, format func(float64) string) []AxisTick {
 	lo, hi := float64(minimum), float64(maximum)
-	if !math3d.IsFinite(lo) || !math3d.IsFinite(hi) || lo > hi {
+	if !nt3dmath.IsFinite(lo) || !nt3dmath.IsFinite(hi) || lo > hi {
 		return nil
 	}
 	if count == 0 {

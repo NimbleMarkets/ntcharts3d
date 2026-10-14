@@ -1,9 +1,9 @@
 package ntcharts3d
 
 import (
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
 	"image/color"
 	"math"
+	"nimbleterminal.dev/nt3d/math"
 	"reflect"
 	"testing"
 )
@@ -88,12 +88,12 @@ func TestPlotRangeOwnershipAndCache(t *testing.T) {
 }
 
 func TestClipPrimitives(t *testing.T) {
-	var bounds math3d.AABB
-	bounds.Include(math3d.Vec3{X: -1, Y: -1, Z: -1})
-	bounds.Include(math3d.Vec3{X: 1, Y: 1, Z: 1})
+	var bounds nt3dmath.AABB
+	bounds.Include(nt3dmath.Vec3{X: -1, Y: -1, Z: -1})
+	bounds.Include(nt3dmath.Vec3{X: 1, Y: 1, Z: 1})
 	red, blue := color.RGBA{R: 255, A: 255}, color.RGBA{B: 255, A: 255}
-	a, b, c := Vertex{Position: math3d.Vec3{X: -2}, Color: red}, Vertex{Position: math3d.Vec3{X: 2}, Color: blue}, Vertex{Position: math3d.Vec3{Y: 2}, Color: red}
-	g := Geometry{Points: []Point{{Position: a.Position}, {Position: math3d.Vec3{}, Datum: 42}}, Vertices: []Vertex{a, b, c}, Indices: []uint32{0, 1, 2}, Lines: []Vertex{a, b}, Boxes: []Box{{Min: math3d.Vec3{X: -2, Y: -2, Z: -2}, Size: math3d.Vec3{X: 4, Y: 4, Z: 4}, Datum: 7}}}
+	a, b, c := Vertex{Position: nt3dmath.Vec3{X: -2}, Color: red}, Vertex{Position: nt3dmath.Vec3{X: 2}, Color: blue}, Vertex{Position: nt3dmath.Vec3{Y: 2}, Color: red}
+	g := Geometry{Points: []Point{{Position: a.Position}, {Position: nt3dmath.Vec3{}, Datum: 42}}, Vertices: []Vertex{a, b, c}, Indices: []uint32{0, 1, 2}, Lines: []Vertex{a, b}, Boxes: []Box{{Min: nt3dmath.Vec3{X: -2, Y: -2, Z: -2}, Size: nt3dmath.Vec3{X: 4, Y: 4, Z: 4}, Datum: 7}}}
 	clipped := clipGeometry(g, bounds)
 	if len(clipped.Points) != 1 || clipped.Points[0].Datum != 42 || len(clipped.Indices) < 3 || len(clipped.Lines) != 2 || len(clipped.Boxes) != 1 {
 		t.Fatalf("bad clip: %+v", clipped)
@@ -106,13 +106,13 @@ func TestClipPrimitives(t *testing.T) {
 	if clipped.Lines[0].Color.R != 191 || clipped.Lines[0].Color.B != 64 {
 		t.Fatal("clip did not interpolate colors", clipped.Lines)
 	}
-	if clipped.Boxes[0].Min != bounds.Min || clipped.Boxes[0].Size != (math3d.Vec3{X: 2, Y: 2, Z: 2}) || clipped.Boxes[0].Datum != 7 {
+	if clipped.Boxes[0].Min != bounds.Min || clipped.Boxes[0].Size != (nt3dmath.Vec3{X: 2, Y: 2, Z: 2}) || clipped.Boxes[0].Datum != 7 {
 		t.Fatal("bar clip lost extent or datum")
 	}
 	if g.Vertices[0].Position.X != -2 {
 		t.Fatal("source mutated")
 	}
-	outside := Box{Min: math3d.Vec3{X: 3}, Size: math3d.Vec3{X: 1, Y: 1, Z: 1}}
+	outside := Box{Min: nt3dmath.Vec3{X: 3}, Size: nt3dmath.Vec3{X: 1, Y: 1, Z: 1}}
 	if _, ok := clipBox(outside, bounds); ok {
 		t.Fatal("outside box retained")
 	}
@@ -120,7 +120,7 @@ func TestClipPrimitives(t *testing.T) {
 
 func TestPlotAspectTransformAndPicking(t *testing.T) {
 	for _, projection := range []Projection{Orthographic, Perspective} {
-		m := New(81, 43, WithRenderMode(Software), WithPlotAspect(math3d.Vec3{X: 1, Y: .7, Z: .5}), WithAxes(Axes{Z: Axis{Range: &Range{Min: 0, Max: 3}}}))
+		m := New(81, 43, WithRenderMode(Software), WithPlotAspect(nt3dmath.Vec3{X: 1, Y: .7, Z: .5}), WithAxes(Axes{Z: Axis{Range: &Range{Min: 0, Max: 3}}}))
 		m.SetBars("bar", Bars{NX: 1, NY: 1, Values: []float32{10}})
 		c := DefaultCamera()
 		c.Projection = projection
@@ -143,17 +143,17 @@ func TestPlotAspectTransformAndPicking(t *testing.T) {
 		if f.Emphasis == nil || f.Emphasis.Box == nil || f.Emphasis.Box.Size.Z != 3 {
 			t.Fatal("highlight does not match clipped bar")
 		}
-		normal := transform.normal(math3d.Vec3{X: 1, Y: 1, Z: 1})
-		tangent := math3d.Vec3{X: transform.scale.X, Y: -transform.scale.Y}
+		normal := transform.normal(nt3dmath.Vec3{X: 1, Y: 1, Z: 1})
+		tangent := nt3dmath.Vec3{X: transform.scale.X, Y: -transform.scale.Y}
 		if abs(normal.Dot(tangent)) > 1e-5 {
 			t.Fatal("normal is not perpendicular after scaling")
 		}
 		old := m.PlotAspect()
-		m.SetPlotAspect(math3d.Vec3{X: 1})
+		m.SetPlotAspect(nt3dmath.Vec3{X: 1})
 		if m.Err() == nil || m.PlotAspect() != old {
 			t.Fatal("invalid aspect applied")
 		}
-		m.SetPlotAspect(math3d.Vec3{})
+		m.SetPlotAspect(nt3dmath.Vec3{})
 		if m.Err() != nil {
 			t.Fatal(m.Err())
 		}
@@ -170,7 +170,7 @@ func TestClippedPointCannotBePicked(t *testing.T) {
 	c.Distance = 10
 	m.SetCamera(c)
 	f := m.frame()
-	x, y, _, ok := f.Matrix.Project(math3d.Vec3{Z: 3}, f.Width, f.Height)
+	x, y, _, ok := f.Matrix.Project(nt3dmath.Vec3{Z: 3}, f.Width, f.Height)
 	if !ok {
 		t.Fatal("test point is off screen")
 	}
@@ -212,7 +212,7 @@ func TestHoverDoesNotRebuildGeometry(t *testing.T) {
 }
 
 func TestPlotAspectFlatDataKeepsAxesVisible(t *testing.T) {
-	m := New(100, 40, WithRenderMode(Software), WithPlotAspect(math3d.Vec3{X: 1, Y: 1, Z: 1}))
+	m := New(100, 40, WithRenderMode(Software), WithPlotAspect(nt3dmath.Vec3{X: 1, Y: 1, Z: 1}))
 	defer m.Close()
 	m.SetScatter("flat", Scatter{X: []float32{-1, 1}, Y: []float32{-1, 1}, Z: []float32{0, 0}})
 	f := m.frame()

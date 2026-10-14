@@ -8,14 +8,14 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d/math"
 )
 
 // A steady swirling flow with upward motion. Streamlines below are analytic
 // integral curves of this same vector field, not unrelated decorative lines.
-func swirl(p math3d.Vec3) math3d.Vec3 {
+func swirl(p nt3dmath.Vec3) nt3dmath.Vec3 {
 	r := math.Hypot(float64(p.X), float64(p.Y))
-	return math3d.Vec3{X: -p.Y, Y: p.X, Z: float32(.3 + .12*math.Cos(2*r))}
+	return nt3dmath.Vec3{X: -p.Y, Y: p.X, Z: float32(.3 + .12*math.Cos(2*r))}
 }
 func (g *gallery) loadVectorField() tea.Cmd {
 	axes := g.scene.SetAxes(ntcharts3d.Axes{
@@ -35,7 +35,7 @@ func (g *gallery) setVectorField() tea.Cmd {
 	for iz := range 3 {
 		for iy := range 7 {
 			for ix := range 7 {
-				p := math3d.Vec3{X: float32(ix-3) * .3, Y: float32(iy-3) * .3, Z: float32(iz-1) * .7}
+				p := nt3dmath.Vec3{X: float32(ix-3) * .3, Y: float32(iy-3) * .3, Z: float32(iz-1) * .7}
 				v := swirl(p)
 				d.Origins = append(d.Origins, p)
 				d.Vectors = append(d.Vectors, v)
@@ -58,9 +58,9 @@ func (g *gallery) setStreamlines() tea.Cmd {
 	for seed := range 6 {
 		radius := .5 + float64(seed%2)*.45
 		phase := float64(seed) * math.Pi / 3
-		lift := float64(swirl(math3d.Vec3{X: float32(radius)}).Z)
-		at := func(t float64) math3d.Vec3 {
-			return math3d.Vec3{X: float32(radius * math.Cos(phase+t)), Y: float32(radius * math.Sin(phase+t)), Z: float32(-.95 + lift*t)}
+		lift := float64(swirl(nt3dmath.Vec3{X: float32(radius)}).Z)
+		at := func(t float64) nt3dmath.Vec3 {
+			return nt3dmath.Vec3{X: float32(radius * math.Cos(phase+t)), Y: float32(radius * math.Sin(phase+t)), Z: float32(-.95 + lift*t)}
 		}
 		for step := range 80 {
 			a, b := at(float64(step)*.08), at(float64(step+1)*.08)

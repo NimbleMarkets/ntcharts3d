@@ -7,7 +7,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	picture "nimbleterminal.dev/ntpicture"
 )
 
 func (m *Model) mouse(msg tea.MouseMsg) tea.Cmd {
@@ -80,13 +80,10 @@ func (m *Model) mouse(msg tea.MouseMsg) tea.Cmd {
 	return m.changed(false)
 }
 
-// togglePicture skips encoding the old glyph image when entering Kitty mode;
-// a new frame will replace it. When leaving, return the image deletion command.
 func (m *Model) togglePicture() tea.Cmd {
-	wasKitty := m.pic.Mode() == picture.PictureKitty
-	cmd := m.pic.Toggle()
-	if wasKitty {
-		return cmd
+	mode := picture.PictureGlyph
+	if !m.forceGlyph && m.session.Snapshot().Kitty == picture.KittyCapabilitySupported {
+		mode = picture.PictureKitty
 	}
-	return nil
+	return m.pic.SetMode(mode)
 }
