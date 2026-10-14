@@ -5,6 +5,9 @@ Versioning; the API may change during the v0.x series.
 
 ## [Unreleased]
 
+- Add a multi-chart demo sharing one TerminalSession, with independent controls
+  and coordinated cleanup; document per-chart discovery when no session is supplied.
+
 - Remove chart exports of `MaxPoints`, `MaxVectors`, `MaxMeshTriangles`, and
   `MaxMeshIndices`; use the constants from `nimbleterminal.dev/nt3d` directly.
 

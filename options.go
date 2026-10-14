@@ -12,8 +12,10 @@ import (
 
 type Option func(*Model)
 
-// WithTerminalSession shares terminal discovery and cell geometry. The caller
-// owns supplied sessions and closes them after disposing all charts.
+// WithTerminalSession shares terminal discovery and cell geometry. Without it,
+// each chart creates a session and may issue its own Kitty probe. Share one
+// session across charts on the same terminal connection to discover support once.
+// The caller owns supplied sessions and closes them after disposing all charts.
 func WithTerminalSession(s *picture.TerminalSession) Option { return func(m *Model) { m.session = s } }
 
 // WithImageIDAllocator supplies fresh positive 24-bit image IDs for placements.

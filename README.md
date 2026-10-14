@@ -53,6 +53,11 @@ Run with `-tab 5 -rotate=false` for swirling arrows and streamlines: `n` normali
 lengths, `s` toggles streamlines, and `w` changes stroke widths.
 See the gallery instructions for browser builds and all controls.
 
+Run `go run ./examples/multichart` (or `task multichart`) for two independently
+controlled charts sharing one terminal session. Without `WithTerminalSession`,
+each chart creates its own session and may issue its own Kitty probe. See the
+[multi-chart demo](examples/multichart/README.md) for message routing and cleanup.
+
 ## Development tasks
 
 Install [Task](https://taskfile.dev/docs/installation), then run tasks from the
@@ -65,6 +70,7 @@ repository root. `task` builds the library and native examples into `bin/`.
 | `task ci` | Check formatting, modules, race tests, vet, and native/WASM builds |
 | `task test-gpu` | Run hardware GPU tests without the race detector |
 | `task gallery -- -render-mode software` | Run the gallery with flags |
+| `task multichart -- -render-mode software` | Run two charts sharing terminal discovery |
 | `task transport -- -medium shm` | Run the transport diagnostic with flags |
 | `task go-tidy` | Update module files in all three modules |
 | `task build-web` | Compile both WASM examples and generate browser assets |

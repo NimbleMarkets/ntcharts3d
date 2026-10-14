@@ -466,7 +466,10 @@ shared memory is unavailable.
 Transport types come from `nimbleterminal.dev/ntpicture` (usually imported as
 `picture`). `WithTerminalSession(session)` shares discovery and cell geometry
 between charts on one terminal connection. The host owns supplied sessions;
-otherwise the chart creates and closes its own explicit session.
+otherwise each chart creates and closes its own explicit session and may issue
+its own Kitty probe. For several charts in one program, create one session and
+pass it to every chart to perform discovery once. See the runnable
+[multi-chart demo](examples/multichart/README.md).
 
 `WithImageIDAllocator(func() (int, error))` replaces `WithKittyID`. Allocations
 must return fresh positive 24-bit IDs. By default ntpicture's shared allocator

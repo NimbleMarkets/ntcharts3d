@@ -42,13 +42,13 @@ tasks:
   fmt:
     desc: Format Go source
     cmds:
-      - gofmt -w *.go cmd/wasm-build/*.go examples/gallery/*.go examples/transport/*.go
+      - gofmt -w *.go cmd/wasm-build/*.go examples/gallery/*.go examples/transport/*.go examples/multichart/*.go
 
   fmt-check:
     desc: Check Go formatting
     cmds:
       - |
-        unformatted_files=$(gofmt -l *.go cmd/wasm-build/*.go examples/gallery/*.go examples/transport/*.go)
+        unformatted_files=$(gofmt -l *.go cmd/wasm-build/*.go examples/gallery/*.go examples/transport/*.go examples/multichart/*.go)
         if [ -n "$unformatted_files" ]; then
           printf '%s\n' "$unformatted_files"
           exit 1
@@ -99,8 +99,19 @@ tasks:
       - go build -mod=readonly ./...
 
   build-examples:
-    desc: Build both native examples into bin/
-    deps: [build-ex-gallery, build-ex-transport]
+    desc: Build all native examples into bin/
+    deps: [build-ex-gallery, build-ex-transport, build-ex-multichart]
+
+  build-ex-multichart:
+    desc: Build the shared-session multi-chart demo
+    cmds:
+      - go build -mod=readonly -o bin/ntcharts3d-multichart ./examples/multichart
+
+  multichart:
+    desc: Run two charts sharing a terminal session; pass flags after --
+    deps: [build-ex-multichart]
+    cmds:
+      - bin/ntcharts3d-multichart {{.CLI_ARGS}}
 
   build-ex-gallery:
     desc: Build the native gallery
@@ -183,7 +194,7 @@ tasks:
   clean:
     desc: Remove compiled examples; keep browser assets
     cmds:
-      - rm -f bin/ntcharts3d-gallery bin/ntcharts3d-transport
+      - rm -f bin/ntcharts3d-gallery bin/ntcharts3d-transport bin/ntcharts3d-multichart
       - rm -f examples/gallery/web/app.wasm examples/transport/web/app.wasm
 
   build-wasm-site:
