@@ -33,15 +33,16 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			return m, nil
 		}
 		m.busy = false
-		if v.seq != m.seq {
-			return m, m.schedule()
-		}
 		if v.err != nil {
 			m.err = v.err
 			if m.renderer != nil {
 				_ = m.renderer.Close()
 				m.renderer = nil
 			}
+			m.renderMode = v.renderMode
+		}
+		if v.seq != m.seq {
+			return m, m.schedule()
 		}
 		m.renderMode = v.renderMode
 		m.wire = v.wire

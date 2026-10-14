@@ -116,6 +116,33 @@ func TestAutomaticDemotionAndIdle(t *testing.T) {
 	}
 }
 
+func TestStaleGPUFailureDemotesBeforeScheduling(t *testing.T) {
+	r := &failedRenderer{}
+	m := New(40, 20, WithRenderer(r))
+	defer m.Close()
+	m.started = true
+	first := m.schedule()
+	m.SetCamera(Camera{Alpha: 45, Distance: 3})
+	msg := first().(rendered)
+	if msg.seq == m.seq || msg.err == nil {
+		t.Fatal("expected a stale GPU failure")
+	}
+	_, next := m.Update(msg)
+	if !r.closed || m.renderer != nil || m.RenderMode() != Software {
+		t.Fatal("stale GPU failure did not release and demote the renderer")
+	}
+	if m.Err() != msg.err || m.RequestedRenderMode() != WebGPU {
+		t.Fatal("fallback lost the error or requested mode")
+	}
+	if next == nil {
+		t.Fatal("stale failure did not schedule the changed chart")
+	}
+	frame := next().(rendered)
+	if frame.seq != m.seq || frame.renderMode != Software || frame.err != nil || frame.frame == nil {
+		t.Fatalf("next frame did not render successfully in software: %+v", frame)
+	}
+}
+
 func TestSlowSoftwareFallbackPreservesRequestedMode(t *testing.T) {
 	m := New(40, 20, WithRenderMode(Software))
 	defer m.Close()
