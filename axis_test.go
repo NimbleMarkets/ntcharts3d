@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 func TestNumericTicks(t *testing.T) {

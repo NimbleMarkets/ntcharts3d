@@ -8,7 +8,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts3d"
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 // A steady swirling flow with upward motion. Streamlines below are analytic

@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 // Bars holds a category grid stored by row. Values are signed heights from zero;

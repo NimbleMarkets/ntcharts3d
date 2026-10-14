@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	tea "charm.land/bubbletea/v2"
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 // Axis configures one shared coordinate axis. The zero value shows a numeric

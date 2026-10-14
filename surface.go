@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 // Surface is a regular XY grid stored by row. Sampler overrides Z and runs

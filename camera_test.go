@@ -5,7 +5,7 @@ import (
 	"math"
 	"testing"
 
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 func TestCameraProjectionAndRay(t *testing.T) {

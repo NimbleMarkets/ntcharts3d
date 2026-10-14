@@ -8,7 +8,7 @@ import (
 	"math"
 	"testing"
 
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 func testTexture(t *testing.T, c color.RGBA) *Texture {

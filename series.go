@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 // Series supplies a named dataset as geometry. Geometry is compiled when data,

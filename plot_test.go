@@ -3,9 +3,10 @@ package ntcharts3d
 import (
 	"image/color"
 	"math"
-	"nimbleterminal.dev/nt3d/math"
 	"reflect"
 	"testing"
+
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 func TestFixedColorDomain(t *testing.T) {

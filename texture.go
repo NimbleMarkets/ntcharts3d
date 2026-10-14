@@ -2,12 +2,13 @@
 package ntcharts3d
 
 import (
-	tea "charm.land/bubbletea/v2"
 	"fmt"
 	"image"
-	"nimbleterminal.dev/nt3d"
 	"reflect"
 	"slices"
+
+	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/nt3d"
 )
 
 type UV = nt3d.UV

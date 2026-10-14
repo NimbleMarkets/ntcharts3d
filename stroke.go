@@ -5,7 +5,7 @@ package ntcharts3d
 import (
 	"math"
 
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 type strokePoint struct{ x, y, z, w float32 }

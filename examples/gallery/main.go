@@ -3,20 +3,21 @@
 package main
 
 import (
-	tea "charm.land/bubbletea/v2"
 	"flag"
 	"fmt"
+	"math"
+	"math/rand/v2"
+	"os"
+	"runtime"
+	"time"
+
+	tea "charm.land/bubbletea/v2"
 	booba "github.com/NimbleMarkets/go-booba"
 	"github.com/NimbleMarkets/ntcharts3d"
 	"github.com/aquilax/go-perlin"
 	zone "github.com/lrstanley/bubblezone/v2"
-	"math"
-	"math/rand/v2"
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 	picture "nimbleterminal.dev/ntpicture"
-	"os"
-	"runtime"
-	"time"
 )
 
 type gallery struct {

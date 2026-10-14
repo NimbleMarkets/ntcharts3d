@@ -3,8 +3,9 @@ package ntcharts3d
 
 import (
 	"image"
-	"nimbleterminal.dev/nt3d"
 	"sync"
+
+	"nimbleterminal.dev/nt3d"
 )
 
 // gpuRenderer adapts chart frames; nt3d owns GPU resources and upload caching.

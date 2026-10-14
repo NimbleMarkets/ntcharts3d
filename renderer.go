@@ -6,7 +6,7 @@ import (
 	"image"
 	"image/color"
 
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 // RenderMode selects WebGPU, software, or wireframe rendering.

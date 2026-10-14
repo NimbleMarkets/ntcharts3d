@@ -8,7 +8,7 @@ import (
 	"math"
 	"unicode/utf8"
 
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 type axisPoint struct{ x, y float32 }

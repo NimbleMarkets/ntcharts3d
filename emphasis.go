@@ -3,13 +3,14 @@
 package ntcharts3d
 
 import (
-	tea "charm.land/bubbletea/v2"
 	"fmt"
 	"image"
 	"image/color"
 	"math"
-	"nimbleterminal.dev/nt3d/math"
 	"unicode/utf8"
+
+	tea "charm.land/bubbletea/v2"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 // Emphasis controls the foreground highlight for the hovered datum.

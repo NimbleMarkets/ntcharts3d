@@ -4,9 +4,9 @@ package ntcharts3d
 
 import (
 	"fmt"
-	"nimbleterminal.dev/nt3d"
 
-	"nimbleterminal.dev/nt3d/math"
+	"nimbleterminal.dev/nt3d"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 type Point = nt3d.Point

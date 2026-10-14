@@ -5,11 +5,11 @@ package ntcharts3d
 import (
 	"fmt"
 	"math"
-	"nimbleterminal.dev/nt3d"
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
-	"nimbleterminal.dev/nt3d/math"
+	"nimbleterminal.dev/nt3d"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 const MaxVectors = 100_000

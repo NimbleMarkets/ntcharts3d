@@ -4,7 +4,8 @@ package ntcharts3d
 
 import (
 	"image/color"
-	"nimbleterminal.dev/nt3d/math"
+
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 func contains(b nt3dmath.AABB, p nt3dmath.Vec3) bool {

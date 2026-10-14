@@ -2,11 +2,12 @@ package ntcharts3d
 
 import (
 	"image/color"
-	"nimbleterminal.dev/nt3d/math"
 	"reflect"
 	"sync"
 	"testing"
 	"unicode/utf8"
+
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 func TestGridFollowsBackPlanes(t *testing.T) {

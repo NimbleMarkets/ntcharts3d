@@ -8,7 +8,7 @@ import (
 	"image/color"
 	"testing"
 
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 // recorder is a renderer that notes the frames it is given.

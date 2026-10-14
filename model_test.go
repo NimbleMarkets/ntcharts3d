@@ -1,16 +1,17 @@
 package ntcharts3d
 
 import (
-	tea "charm.land/bubbletea/v2"
 	"errors"
 	"fmt"
 	"image"
 	"image/color"
-	"nimbleterminal.dev/nt3d/math"
-	picture "nimbleterminal.dev/ntpicture"
 	"strings"
 	"testing"
 	"time"
+
+	tea "charm.land/bubbletea/v2"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
+	picture "nimbleterminal.dev/ntpicture"
 )
 
 type failedRenderer struct{ closed bool }

@@ -6,7 +6,7 @@ import (
 	"math"
 	"strconv"
 
-	"nimbleterminal.dev/nt3d/math"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 func numericTicks(minimum, maximum float32, count int, format func(float64) string) []AxisTick {

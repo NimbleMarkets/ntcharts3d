@@ -3,11 +3,12 @@
 package ntcharts3d
 
 import (
-	tea "charm.land/bubbletea/v2"
 	"fmt"
 	"math"
-	"nimbleterminal.dev/nt3d/math"
 	"slices"
+
+	tea "charm.land/bubbletea/v2"
+	nt3dmath "nimbleterminal.dev/nt3d/math"
 )
 
 // Range is a fixed numeric interval. Min and Max must be finite, with Min < Max.
