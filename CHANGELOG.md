@@ -5,6 +5,29 @@ Versioning; the API may change during the v0.x series.
 
 ## [Unreleased]
 
+- Resolve ntpicture v0.1.0 and nt3d v0.1.0 as published Go
+  modules; remove sibling replacements and extra CI dependency checkouts.
+
+- Target nt3d's published Lighting API while preserving chart lighting controls.
+- Update ntpicture to `v0.1.0`; delegate raster budgets and automatic
+  Kitty/glyph selection, preserving automatic mode across exact frame submissions.
+
+- Update ntpicture to its modern root API and lifecycle fixes. Select Kitty from
+  session-scoped discovery notifications, retain late-reply recovery and glyph
+  selection, and submit renderer output atomically with exact raster dimensions.
+- Terminal overrides now use `NTPICTURE_KITTY` and
+  `NTPICTURE_TMUX_PASSTHROUGH`; update the transport example and tests.
+
+- Add anisotropic texture filtering with `WithAnisotropy`, `SetAnisotropy`, and
+  `Frame.Anisotropy`. Charts default to 4×; 1× selects mipmapping alone and up to
+  16× retains more detail at shallow angles. The gallery accepts `-anisotropy`.
+- Adopt ntgpuimage v0.3.0 and the matching nt3d revision; ntgpuimage no longer
+  needs a local dependency snapshot or extra CI checkout.
+
+- Upgrade nt3d and ntgpuimage together for mipmapped textures and linear-light
+  texture filtering in GPU and software rendering. Chart lighting is unchanged.
+  Dependency bootstrapping and CI pin nt3d and ntpicture.
+
 - Add fuzz tests for ticks, label text, palettes, clipping, and model rendering
   (`task fuzz`). Fix a non-finite plot transform when every datum shares an
   axis value beyond ~1.7e35.
@@ -29,7 +52,7 @@ Versioning; the API may change during the v0.x series.
   presentation_ms report replace encoding-only timing; raw APC byte counts are
   no longer exposed by the presentation API.
 - Bootstrap committed dependency snapshots with task deps while the pinned
-  nt3d revision is unpublished; CI uses the same revisions.
+  dependency revisions are unpublished; CI uses the same revisions.
 
 - Both browser examples use go-booba v0.9.2, whose bundled ghostty-web fixes
   restore animation in Safari and prevent grey placeholder cells while dragging.

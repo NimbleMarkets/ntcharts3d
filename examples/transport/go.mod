@@ -9,8 +9,8 @@ require (
 	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/gogpu/gputypes v0.8.0
 	github.com/gogpu/wgpu v0.34.5
-	nimbleterminal.dev/ntgpuimage v0.2.0
-	nimbleterminal.dev/ntpicture v0.0.0-20261014195839-1a8609901740
+	nimbleterminal.dev/ntgpuimage v0.3.0
+	nimbleterminal.dev/ntpicture v0.1.0
 )
 
 require (
@@ -39,5 +39,3 @@ require (
 replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20261009201241-c397c32a5074
 
 tool github.com/NimbleMarkets/go-booba/cmd/booba-assets
-
-replace nimbleterminal.dev/ntpicture => ../../.deps/ntpicture

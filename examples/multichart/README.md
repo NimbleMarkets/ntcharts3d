@@ -25,7 +25,9 @@ The parent broadcasts terminal replies, session notifications, and asynchronous
 completions to both charts, executing every returned command. Keyboard input goes
 to the focused chart. Both charts share a zone manager, and the parent scans the
 complete composed view so mouse coordinates include each chart's actual offset.
-Window-size messages are converted into individual chart sizes.
+Window-size messages are converted into individual chart sizes. Session-scoped
+`TerminalSessionMsg` notifications drive Kitty selection, so foreign sessions
+and duplicate notifications cannot override a chart's explicit glyph choice.
 
 On quit, the parent executes both charts' `Dispose` commands before `tea.Quit`,
 while continuing to forward late completions. After the event loop exits it

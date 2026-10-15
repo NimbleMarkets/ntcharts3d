@@ -7,7 +7,7 @@ vars:
 
 tasks:
   deps:
-    desc: Extract pinned nt3d and ntpicture commits from sibling repositories
+    desc: Download published dependencies for all modules
     cmds:
       - bash scripts/bootstrap-deps.sh
 

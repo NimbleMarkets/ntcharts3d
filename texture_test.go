@@ -173,11 +173,62 @@ func TestSoftwarePerspectiveTexture(t *testing.T) {
 	worldX := ndcX / (1 - .5*ndcX)
 	w := 1 + .5*worldX
 	worldY := (1 - 2*(float32(y)+.5)/100) * w
-	// The 2x2 texture interpolates its four known corner colors.
+	// The black/white channel weights are linear-light intensities; filtering
+	// encodes them back to sRGB after perspective-correct interpolation.
 	u, v := float64((worldX+1)/2)*2-.5, float64((1-worldY)/2)*2-.5
-	want := color.RGBA{uint8(255*((1-u)*(1-v)+u*v) + .5), uint8(255*u + .5), uint8(255*v + .5), 255}
+	encode := func(v float64) uint8 {
+		if v <= .0031308 {
+			return uint8(255*12.92*v + .5)
+		}
+		return uint8(255*(1.055*math.Pow(v, 1/2.4)-.055) + .5)
+	}
+	want := color.RGBA{encode((1-u)*(1-v) + u*v), encode(u), encode(v), 255}
 	got := img.At(x, y).(color.RGBA)
 	if abs(float32(got.R)-float32(want.R)) > 1 || abs(float32(got.G)-float32(want.G)) > 1 || abs(float32(got.B)-float32(want.B)) > 1 {
 		t.Fatal("perspective interpolation", got, want)
+	}
+}
+
+func minifiedTextureFrame(t *testing.T) Frame {
+	t.Helper()
+	src := image.NewRGBA(image.Rect(0, 0, 64, 64))
+	for y := range 64 {
+		for x := range 64 {
+			v := uint8(0)
+			if (x+y)%2 == 0 {
+				v = 255
+			}
+			src.SetRGBA(x, y, color.RGBA{v, v, v, 255})
+		}
+	}
+	tex, err := NewTexture(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f := textureTestFrame(t)
+	f.Width, f.Height = 8, 8
+	f.Geometry[0].Material = &Material{Texture: tex, Unlit: true}
+	return f
+}
+
+func checkMinifiedTexture(t *testing.T, img image.Image) {
+	t.Helper()
+	// Equal black and white texels average to half the light, about sRGB 188.
+	// Every pixel covers many texels, so the result should be evenly gray.
+	for y := range 8 {
+		for x := range 8 {
+			c := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)
+			if c.R < 186 || c.R > 190 || c.G != c.R || c.B != c.R || c.A != 255 {
+				t.Fatalf("minified checker at (%d,%d) = %v, want linear-light gray", x, y, c)
+			}
+		}
+	}
+}
+
+func TestSoftwareTextureMipmaps(t *testing.T) {
+	f := minifiedTextureFrame(t)
+	for _, n := range []int{1, 4, 16} {
+		f.Anisotropy = n
+		checkMinifiedTexture(t, softwareRender(f))
 	}
 }

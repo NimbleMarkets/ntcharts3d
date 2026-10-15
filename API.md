@@ -315,13 +315,24 @@ also copy UVs and materials. A zero-value `Texture` is invalid. Textures can be
 shared by multiple series and charts; each renderer owns and releases its GPU
 resources through `Close`, and discards images no longer used by its meshes.
 
-Both raster renderers use bilinear filtering with clamp-to-edge and
-perspective-correct UV interpolation. Plot clipping interpolates UVs. Channels
-are assumed sRGB-encoded, uploaded as RGBA8Unorm, and filtered/lit directly in
-encoded space; no linear-light conversion or color-profile processing occurs.
-This preserves unlit image colors. Alpha blending and mipmaps are not supported
-in this version. Highly tilted or minified images may alias. Wireframe displays
-geometry only.
+Both raster renderers use perspective-correct UV interpolation, clamp-to-edge,
+and mipmapped texture filtering. Plot clipping interpolates UVs. Image channels
+are sRGB-encoded; texels are filtered and mip levels averaged in linear light,
+then returned to the chart's encoded color space. The GPU uploads sRGB textures
+and uses anisotropic filtering; software samples the same mip chain along each
+pixel's texture footprint. This reduces aliasing when images are minified or
+viewed at a slant and preserves unlit image colors. Chart lighting still operates in encoded space. Alpha blending remains
+unsupported by chart materials. Wireframe displays geometry only.
+
+`WithAnisotropy(n)` and `SetAnisotropy(n)` limit texture samples for both raster
+renderers, including software fallback and snapshots. The default is 4; zero
+restores that default, 1 uses mipmapping alone, and other values are clamped to
+1..`nt3d.MaxAnisotropy` (16). Higher limits retain more detail on surfaces viewed
+at shallow angles and cost more to render, especially in software. `Anisotropy()`
+reports the current limit. Changing it schedules a new frame without rebuilding
+chart geometry. Custom `Renderer` implementations receive the limit in
+`Frame.Anisotropy`; a zero-value frame uses the chart default of 4 when adapted
+to nt3d.
 
 Textured surfaces do not contribute an elevation palette domain or legend by
 default. Set `Surface.ColorLegend: true` to opt in; custom series control this
@@ -471,6 +482,26 @@ its own Kitty probe. For several charts in one program, create one session and
 pass it to every chart to perform discovery once. See the runnable
 [multi-chart demo](examples/multichart/README.md).
 
+The host forwards terminal replies and `picture.TerminalSessionMsg` to every
+chart on that connection and executes all returned commands. Each chart selects
+Kitty on its own session's notification, including a late positive reply after a
+probe timeout. Foreign notifications are ignored, and explicit glyph selection
+is preserved. Known support is applied at construction. Automatic mode follows subsequent
+session capability changes; frame submissions preserve that policy.
+
+`NTPICTURE_KITTY=supported` or `unsupported` overrides discovery, and
+`NTPICTURE_TMUX_PASSTHROUGH=true` or `false` overrides tmux wrapping. These replace
+the former `NTCHARTS_*` names. Set them before constructing a terminal session.
+The modern ntpicture root package has no process-wide initialization side effects;
+this integration uses explicit sessions and does not use `ntpicture/legacy`.
+
+Rendered images are submitted atomically with their cell and terminal geometry,
+using immutable pixels and `Exact: true`. A custom `Renderer` must return the
+requested `Frame.Width` × `Frame.Height` raster; mismatches report presentation
+errors rather than being silently resized. nt3d remains responsible for rendering;
+ntpicture handles raster pixel budgets, preparation, ordered output, placement
+retirement, and cleanup. The chart retains its adaptive software quality policy.
+
 `WithImageIDAllocator(func() (int, error))` replaces `WithKittyID`. Allocations
 must return fresh positive 24-bit IDs. By default ntpicture's shared allocator
 coordinates placements; streaming frames reuse their placement internally.
@@ -494,3 +525,8 @@ opaque `NewTexture` contract is retained over immutable engine texture storage.
 Geometry limits are provided directly by `nimbleterminal.dev/nt3d`: use
 `nt3d.MaxPoints`, `nt3d.MaxVectors`, `nt3d.MaxMeshTriangles`, and
 `nt3d.MaxMeshIndices`. The corresponding ntcharts3d constants have been removed.
+
+The chart's `Light` and `SetLight` API remains a direction and ambient fraction.
+The renderer adapter converts it to nt3d's `Lighting`: uniform white ambient
+scaled by the ambient fraction, plus a white directional light scaled by its
+complement. Fully ambient lighting omits the directional light.

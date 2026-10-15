@@ -20,7 +20,7 @@ require (
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/naga v0.19.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	nimbleterminal.dev/ntgpuimage v0.2.0 // indirect
+	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
 )
 
 require (
@@ -41,10 +41,6 @@ require (
 
 require nimbleterminal.dev/ntcanvas v0.1.0 // indirect
 
-require nimbleterminal.dev/nt3d v0.0.0-20261014200917-972f2a4220a4
+require nimbleterminal.dev/nt3d v0.1.0
 
-require nimbleterminal.dev/ntpicture v0.0.0-20261014195839-1a8609901740
-
-replace nimbleterminal.dev/nt3d => ./.deps/nt3d
-
-replace nimbleterminal.dev/ntpicture => ./.deps/ntpicture
+require nimbleterminal.dev/ntpicture v0.1.0

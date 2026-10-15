@@ -17,9 +17,6 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	if m.closed {
 		return m, nil
 	}
-	if !m.forceGlyph && m.pic.Mode() == picture.PictureGlyph && m.session.Snapshot().Kitty == picture.KittyCapabilitySupported {
-		pictureCmd = tea.Batch(pictureCmd, m.togglePicture())
-	}
 	if before != m.pic.RasterGeometry() {
 		m.seq++
 		m.dirty = true

@@ -1,6 +1,6 @@
 # Transport diagnostic
 
-Uses `ntgpuimage v0.2.0` and the repository's pinned `ntpicture`, with Go 1.26.8.
+Uses `ntgpuimage v0.3.0` and the repository's pinned `ntpicture`, with Go 1.26.8.
 Run `task deps` from the repository root first; see the root dependency notes.
 The Bubble Tea browser fork remains.
 
@@ -65,7 +65,7 @@ Allocate a PTY and explicitly enable Kitty graphics, since SSH may not forward
 `TERM_PROGRAM`:
 
 ```sh
-ssh -t HOST 'NTCHARTS_KITTY=supported /path/to/transport -medium direct -format png -fps 120'
+ssh -t HOST 'NTPICTURE_KITTY=supported /path/to/transport -medium direct -format png -fps 120'
 ```
 
 Use `t` to compare PNG and raw RGBA, and `,`/`.` to adjust density. Keep shared

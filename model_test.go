@@ -280,9 +280,7 @@ func TestKittyEncoding(t *testing.T) {
 			defer session.Close()
 			m := New(8, 6, WithRenderMode(Software), WithTerminalSession(session), WithKittyFormat(format), WithKittyMedium(picture.KittyMediumSharedMemory))
 			defer m.Close()
-			m.started = true
-			_, cmd := m.Update(struct{}{})
-			messages := drain(t, m, cmd)
+			messages := drain(t, m, m.Init())
 			status := m.PictureStatus()
 			if status.Busy || status.Presented == 0 || status.Format != format || status.Medium != picture.KittyMediumDirect {
 				t.Fatalf("unexpected presentation: %+v", status)

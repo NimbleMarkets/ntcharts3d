@@ -13,7 +13,7 @@ import (
 
 func TestSharedDiscoveryAndIndependentControls(t *testing.T) {
 	t.Setenv("TERM", "xterm-kitty")
-	t.Setenv("NTCHARTS_KITTY", "")
+	t.Setenv("NTPICTURE_KITTY", "")
 	t.Setenv("TMUX", "")
 	d := newDashboard(ntcharts3d.Wireframe)
 	defer d.close()

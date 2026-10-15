@@ -168,7 +168,7 @@ func drain(t *testing.T, m *model, cmd tea.Cmd) []tea.Msg {
 }
 
 func TestPictureLifecycleAndTransportSwitching(t *testing.T) {
-	t.Setenv("NTCHARTS_KITTY", "supported")
+	t.Setenv("NTPICTURE_KITTY", "supported")
 	m := newModel(&fakeRenderer{}, picture.KittyFormatPNG, picture.KittyMediumDirect, 60, 16)
 	defer m.Dispose()
 	m.playing = false

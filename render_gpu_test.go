@@ -186,6 +186,20 @@ func TestGPUGridAndHover(t *testing.T) {
 	}
 }
 
+func TestGPUTextureMipmaps(t *testing.T) {
+	r := &gpuRenderer{}
+	defer r.Close()
+	f := minifiedTextureFrame(t)
+	for _, n := range []int{1, 4, 16} {
+		f.Anisotropy = n
+		img, err := r.Render(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		checkMinifiedTexture(t, img)
+	}
+}
+
 func TestGPUTexturesAndIndependentUpdates(t *testing.T) {
 	r := &gpuRenderer{}
 	defer r.Close()

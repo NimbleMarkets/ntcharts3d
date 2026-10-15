@@ -46,6 +46,7 @@ type Model struct {
 	renderMode                   RenderMode
 	requestedRenderMode          RenderMode
 	width, height, maxPoints     int
+	anisotropy                   int
 	medium                       picture.KittyMedium
 	kittyFormat                  picture.KittyFormat
 	id, seq, revision, wake      uint64
@@ -70,6 +71,7 @@ func New(width, height int, opts ...Option) *Model {
 		colors:             defaultPalette(),
 		background:         color.RGBA{235, 238, 242, 255},
 		maxPoints:          nt3d.MaxPoints,
+		anisotropy:         defaultAnisotropy,
 		id:                 nextID.Add(1),
 		revision:           1,
 		dirty:              true,
@@ -89,8 +91,8 @@ func New(width, height int, opts ...Option) *Model {
 		m.ownZones = true
 	}
 	m.zoneID = m.zones.NewPrefix() + "ntcharts3d"
-	m.pic = picture.New(picture.Options{Session: m.session, NextID: m.nextImageID, StableID: true, Render: picture.Config{
-		KittyZ: -1, Fit: picture.FitFill, Background: m.background, KittyMedium: m.medium, KittyFormat: m.kittyFormat,
+	m.pic = picture.New(picture.Options{Session: m.session, AutoMode: true, NextID: m.nextImageID, StableID: true, Render: picture.Config{
+		MaxRasterPixels: maxFramePixels, KittyZ: -1, Fit: picture.FitFill, Background: m.background, KittyMedium: m.medium, KittyFormat: m.kittyFormat,
 	}})
 	m.pic.SetVisible(m.renderMode != Wireframe)
 	m.SetSize(width, height)
@@ -99,6 +101,21 @@ func New(width, height int, opts ...Option) *Model {
 
 func (m *Model) ID() uint64 { return m.id }
 func (m *Model) Err() error { return m.err }
+
+// Anisotropy is the texture sample limit used by both raster renderers.
+func (m *Model) Anisotropy() int { return m.anisotropy }
+
+// SetAnisotropy changes texture filtering without rebuilding chart geometry.
+// Zero restores the default of 4; other values are clamped to 1..nt3d.MaxAnisotropy.
+// Use 1 for mipmapping alone or higher values for detail at oblique angles.
+func (m *Model) SetAnisotropy(n int) tea.Cmd {
+	n = textureAnisotropy(n)
+	if m.anisotropy == n {
+		return nil
+	}
+	m.anisotropy = n
+	return m.changed(false)
+}
 
 // RenderMode returns the active rendering mode, including automatic fallback.
 func (m *Model) RenderMode() RenderMode { return m.renderMode }
@@ -167,7 +184,12 @@ func (m *Model) SetRenderMode(l RenderMode) tea.Cmd {
 	return tea.Batch(cleanup, m.pic.SetVisible(l != Wireframe), m.resolution(), m.changed(false))
 }
 
-func (m *Model) Init() tea.Cmd { m.started = true; return tea.Batch(m.pic.Init(), m.schedule()) }
+func (m *Model) Init() tea.Cmd {
+	m.started = true
+	// Select already-known capability before producing the first frame. Later
+	// discovery is handled through this session's TerminalSessionMsg.
+	return tea.Batch(m.pic.Init(), m.togglePicture(), m.schedule())
+}
 
 // PictureStatus reports encoding, transport, and presentation progress.
 func (m *Model) PictureStatus() picture.Status { return m.pic.Status() }

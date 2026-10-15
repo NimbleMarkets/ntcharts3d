@@ -37,7 +37,7 @@ See the [changelog](CHANGELOG.md), [API guide](API.md),
 ## Run locally
 
 ```sh
-bash scripts/bootstrap-deps.sh  # extract committed pins from ../nt3d and ../ntpicture
+bash scripts/bootstrap-deps.sh  # download published module dependencies
 go test -race ./...
 cd examples/gallery
 go run .
@@ -51,6 +51,9 @@ map: `t` swaps imagery, `f` toggles flat/terrain, and `l` toggles lighting. Pres
 `g` to switch Kitty/glyph output, `o` to switch projection, and `b` for grid lines. Use PNG over SSH.
 Run with `-tab 5 -rotate=false` for swirling arrows and streamlines: `n` normalizes
 lengths, `s` toggles streamlines, and `w` changes stroke widths.
+Terrain textures use 4× anisotropic filtering by default. Try
+`go -C examples/gallery run . -tab 4 -anisotropy 16` for more detail at shallow
+angles, or `-anisotropy 1` for mipmapping alone.
 See the gallery instructions for browser builds and all controls.
 
 Run `go run ./examples/multichart` (or `task multichart`) for two independently
@@ -66,7 +69,7 @@ repository root. `task` builds the library and native examples into `bin/`.
 | Command | Purpose |
 | --- | --- |
 | `task list` | List all tasks |
-| `task deps` | Extract pinned engine/picture sources from sibling repositories |
+| `task deps` | Download dependencies for all three modules |
 | `task ci` | Check formatting, modules, race tests, vet, and native/WASM builds |
 | `task test-gpu` | Run hardware GPU tests without the race detector |
 | `task gallery -- -render-mode software` | Run the gallery with flags |
@@ -90,19 +93,13 @@ The Pages gallery uses Kitty shared memory with the bundled terminal assets.
 
 ## Dependencies
 
-The library and examples require Go 1.26.8. This development migration pins
-`nt3d` at `972f2a4220a4` and `ntpicture` at `1a8609901740`; `ntcanvas v0.1.0`
-and `ntgpuimage v0.2.0` resolve as normal Go modules. NTCharts is no longer a dependency.
+The library and examples require Go 1.26.8. Dependencies resolve as published
+Go modules: `ntpicture v0.1.0`, `nt3d v0.1.0`, `ntgpuimage v0.3.0`, and
+`ntcanvas v0.1.0`. NTCharts is no longer a dependency.
 
-Until the engine pin is published, module replacements point into ignored
-`.deps/` directories. Run `task deps` (or the shell script above) to extract
-**committed** snapshots from sibling repositories. It does not copy working-tree
-edits or modify either sibling. `NT3D_SOURCE` and `NTPICTURE_SOURCE` override
-those repository paths. CI checks out the same commits into `.deps/`.
-The nt3d pin was not available upstream when this migration was validated;
-GitHub Actions requires that commit to be published. Before a library release,
-publish the dependency pins, remove these local replacements, and regenerate
-module checksums in all three modules.
+Run `task deps` to download dependencies for all three modules. Local sibling
+repositories and `.deps/` snapshots are no longer needed. CI uses the same
+module versions and checksums.
 
 The gallery's `ntcharts3d => ../..` replacement uses this repository directly.
 Both examples use go-booba v0.9.2 and its Bubble Tea WASM fork at `c397c32a5074`.
@@ -134,7 +131,9 @@ exports have been removed. Transport options now use
 `nimbleterminal.dev/ntpicture`. Replace `WithKittyID` with
 `WithImageIDAllocator`; share `WithTerminalSession` between charts on one
 connection. Execute `Dispose()` before quitting, then `Close()` after the event
-loop exits. See [lifecycle details](API.md#terminal-session-and-cleanup).
+loop exits. Terminal overrides are now `NTPICTURE_KITTY=supported` (or
+`unsupported`) and `NTPICTURE_TMUX_PASSTHROUGH=true` (or `false`); sessions
+snapshot these variables when created. See [lifecycle details](API.md#terminal-session-and-cleanup).
 
 Extracted from ntcharts `wgpu-shared-memory` at `2ed8872`.
 MIT license; existing copyright notices are preserved.

@@ -25,16 +25,6 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/checkout@v7
-        with:
-          repository: NimbleTerminal/nt3d
-          ref: 972f2a4220a42f3bc148e6505ff992aaa6d6caa5
-          path: .deps/nt3d
-      - uses: actions/checkout@v7
-        with:
-          repository: NimbleTerminal/ntpicture
-          ref: 1a8609901740ed0a22cc7f729a5aa0694d6578f1
-          path: .deps/ntpicture
       - uses: actions/setup-go@v7
         with:
           # The examples require a newer patch release than the library.

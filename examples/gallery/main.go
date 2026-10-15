@@ -185,12 +185,16 @@ func main() {
 
 func run() error {
 	renderMode := flag.String("render-mode", "gpu", "gpu, software, or wireframe")
+	anisotropy := flag.Int("anisotropy", 0, "texture sample limit (1..16; 0 uses chart default 4)")
 	medium := flag.String("medium", "auto", "auto, direct or shm (native shm requires a local terminal)")
 	points := flag.Int("points", 16000, "scatter points (1..500000)")
 	tab := flag.Int("tab", 1, "initial gallery (1..5)")
 	duration := flag.Duration("duration", 0, "quit automatically after duration")
 	rotate := flag.Bool("rotate", true, "initial auto-rotation")
 	flag.Parse()
+	if *anisotropy < 0 || *anisotropy > nt3d.MaxAnisotropy {
+		return fmt.Errorf("anisotropy must be 0..%d", nt3d.MaxAnisotropy)
+	}
 	if *points < 1 || *points > nt3d.MaxPoints || *tab < 1 || *tab > 5 || *duration < 0 {
 		return fmt.Errorf("invalid points, tab, or duration")
 	}
@@ -218,7 +222,7 @@ func run() error {
 	}
 	zones := zone.New()
 	defer zones.Close()
-	s := ntcharts3d.New(80, 24, ntcharts3d.WithRenderMode(l), ntcharts3d.WithAutoRotate(*rotate), ntcharts3d.WithKittyMedium(m), ntcharts3d.WithSharedColorDomain(true), ntcharts3d.WithGrid(ntcharts3d.Grid{Show: true}), ntcharts3d.WithEmphasis(ntcharts3d.Emphasis{ShowLabel: true}), ntcharts3d.WithZoneManager(zones))
+	s := ntcharts3d.New(80, 24, ntcharts3d.WithRenderMode(l), ntcharts3d.WithAnisotropy(*anisotropy), ntcharts3d.WithAutoRotate(*rotate), ntcharts3d.WithKittyMedium(m), ntcharts3d.WithSharedColorDomain(true), ntcharts3d.WithGrid(ntcharts3d.Grid{Show: true}), ntcharts3d.WithEmphasis(ntcharts3d.Emphasis{ShowLabel: true}), ntcharts3d.WithZoneManager(zones))
 	defer s.Close()
 	g := &gallery{scene: s, zones: zones, tab: *tab - 1, points: *points, duration: *duration}
 	g.load()

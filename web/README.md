@@ -55,8 +55,8 @@ On 2026-10-14, the nt3d/ntpicture migration passed `task ci`, `task test-gpu`
 and TinyGo 0.43.0 rendered with WebGPU and Kitty shared memory. The smoke check
 covered scatter/surface/bar/vector chart switching, terrain texture replacement,
 glyph fallback, and returning to Kitty with the text legend's narrower viewport.
-These are local results; hosted CI still requires the pinned nt3d commit to be
-published upstream. Earlier release validation follows.
+These are local results. The current dependencies are now published Go modules;
+hosted CI no longer needs sibling repository checkouts. Earlier validation follows.
 
 
 Go 1.26.8 and TinyGo 0.42.0 both rendered with Apple WebGPU in Chrome under

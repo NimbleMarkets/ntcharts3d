@@ -178,7 +178,8 @@ func (m *model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	if m.closed {
 		return m, nil
 	}
-	if !m.forceGlyph && m.pic.Mode() == picture.PictureGlyph && m.session.Snapshot().Kitty == picture.KittyCapabilitySupported {
+	if event, ok := msg.(picture.TerminalSessionMsg); ok && event.Session == m.session &&
+		!m.forceGlyph && m.pic.Mode() == picture.PictureGlyph && m.session.Snapshot().Kitty == picture.KittyCapabilitySupported {
 		pictureCmd = tea.Batch(pictureCmd, m.pic.SetMode(picture.PictureKitty))
 	}
 	if before != m.pic.RasterGeometry() {
@@ -218,7 +219,10 @@ func (m *model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		m.mapMS = smooth(m.mapMS, ms(msg.stats.Map))
 		m.copyMS = smooth(m.copyMS, ms(msg.stats.Copy))
 		m.prepareStarted = time.Now()
-		return m, m.pic.SetImageImmutable(msg.image)
+		g := m.pic.RasterGeometry()
+		cw, ch := m.pic.CellPixelSize()
+		return m, m.pic.Submit(picture.Frame{Image: msg.image, Cols: g.Cells.X, Rows: g.Cells.Y,
+			Mode: g.Mode, CellWidth: cw, CellHeight: ch, Exact: true, Immutable: true})
 	case picture.ErrorMsg:
 		if msg.Owner != m.pic || msg.Generation != m.pic.Status().Generation {
 			return m, nil

@@ -95,17 +95,7 @@ func (m *Model) resolution() tea.Cmd {
 	if m.renderMode == Software {
 		factor = m.softwareScale()
 	}
-	cw, ch := m.pic.CellPixelSize()
-	area := float64(m.plotWidth()) * float64(cw) * float64(m.plotHeight()) * float64(ch)
-	if area > maxFramePixels {
-		factor = math.Min(factor, math.Sqrt(float64(maxFramePixels)/area))
-	}
-	cmd := m.pic.SetResolution(factor)
-	for g := m.pic.RasterGeometry(); g.Mode == picture.PictureKitty && g.Pixels.X > maxFramePixels/max(1, g.Pixels.Y); g = m.pic.RasterGeometry() {
-		factor *= .99
-		cmd = tea.Batch(cmd, m.pic.SetResolution(factor))
-	}
-	return cmd
+	return m.pic.SetResolution(factor)
 }
 
 func (m *Model) frame() Frame {
@@ -153,6 +143,7 @@ func (m *Model) frameSized(w, h int, aspect float32, mode RenderMode) Frame {
 	}
 	f := Frame{Width: w, Height: h, Matrix: m.camera.Matrix(aspect).Mul(n), Revision: m.revision, TextureRevision: m.textureRevision, Bounds: b, Axes: m.axisFrames(b), Geometry: geoms, ColorLegends: legends, Background: m.background, Light: m.light}
 	f.GridLines = m.gridLines(f)
+	f.Anisotropy = m.anisotropy
 	f.Emphasis = m.emphasisFrame(f)
 	return f
 }
@@ -195,7 +186,16 @@ func (m *Model) schedule() tea.Cmd {
 	})
 }
 
-func (m *Model) present(img image.Image) tea.Cmd { return m.pic.SetImageImmutable(img) }
+func (m *Model) present(img image.Image) tea.Cmd {
+	g := m.pic.RasterGeometry()
+	cw, ch := m.pic.CellPixelSize()
+	mode := g.Mode
+	if m.pic.AutoMode() {
+		mode = picture.PictureAuto
+	}
+	return m.pic.Submit(picture.Frame{Image: img, Cols: g.Cells.X, Rows: g.Cells.Y,
+		Mode: mode, CellWidth: cw, CellHeight: ch, Exact: true, Immutable: true})
+}
 
 func (m *Model) finish() tea.Cmd {
 	if m.busy {

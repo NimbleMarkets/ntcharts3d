@@ -34,7 +34,7 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
-	nimbleterminal.dev/ntgpuimage v0.2.0 // indirect
+	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
 )
 
 replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20261009201241-c397c32a5074
@@ -49,12 +49,8 @@ require (
 require (
 	github.com/NimbleMarkets/ntcharts3d v0.0.0
 	golang.org/x/image v0.47.0
-	nimbleterminal.dev/nt3d v0.0.0-20261014200917-972f2a4220a4
-	nimbleterminal.dev/ntpicture v0.0.0-20261014195839-1a8609901740
+	nimbleterminal.dev/nt3d v0.1.0
+	nimbleterminal.dev/ntpicture v0.1.0
 )
 
 replace github.com/NimbleMarkets/ntcharts3d => ../..
-
-replace nimbleterminal.dev/nt3d => ../../.deps/nt3d
-
-replace nimbleterminal.dev/ntpicture => ../../.deps/ntpicture

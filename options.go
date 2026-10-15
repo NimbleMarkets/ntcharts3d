@@ -12,6 +12,14 @@ import (
 
 type Option func(*Model)
 
+// WithAnisotropy sets the texture sample limit for both raster renderers.
+// Zero uses the default of 4; other values are clamped to 1..nt3d.MaxAnisotropy.
+// Use 1 for mipmapping alone. Higher limits preserve detail at oblique angles
+// at additional rendering cost, especially in software.
+func WithAnisotropy(n int) Option {
+	return func(m *Model) { m.anisotropy = textureAnisotropy(n) }
+}
+
 // WithTerminalSession shares terminal discovery and cell geometry. Without it,
 // each chart creates a session and may issue its own Kitty probe. Share one
 // session across charts on the same terminal connection to discover support once.

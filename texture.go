@@ -20,7 +20,8 @@ type Material struct {
 	Unlit   bool
 }
 
-// NewTexture copies opaque image pixels into immutable engine storage.
+// NewTexture copies opaque sRGB image pixels into immutable engine storage.
+// Both raster renderers filter the texture in linear light using mipmaps.
 func NewTexture(src image.Image) (*Texture, error) {
 	if src == nil || (reflect.ValueOf(src).Kind() == reflect.Ptr && reflect.ValueOf(src).IsNil()) {
 		return nil, fmt.Errorf("ntcharts3d: nil texture image")
