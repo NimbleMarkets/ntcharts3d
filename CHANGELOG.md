@@ -3,59 +3,29 @@
 Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d) are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
-## [Unreleased]
+## [0.3.0]
 
-- Resolve ntpicture v0.1.0 and nt3d v0.1.0 as published Go
-  modules; remove sibling replacements and extra CI dependency checkouts.
+- Use `nt3d v0.1.0` for rendering and `ntpicture v0.1.0` for terminal images.
+  Dependencies now install as published Go modules. Requires Go 1.26.8.
+- Add mipmaps and anisotropic texture filtering in GPU and software rendering.
+  Filtering defaults to 4× and is configurable with `WithAnisotropy` and `SetAnisotropy`.
+- Improve automatic Kitty/glyph switching, frame sizing, and cleanup on resize
+  and shutdown. Add a multi-chart example with a shared terminal session.
+- Preserve all surface triangles in software rendering and fix plot transforms
+  for very large constant axis values.
+- Update browser examples to go-booba v0.9.2, fixing Safari animation and grey
+  placeholders during dragging.
 
-- Target nt3d's published Lighting API while preserving chart lighting controls.
-- Update ntpicture to `v0.1.0`; delegate raster budgets and automatic
-  Kitty/glyph selection, preserving automatic mode across exact frame submissions.
+### Breaking changes
 
-- Update ntpicture to its modern root API and lifecycle fixes. Select Kitty from
-  session-scoped discovery notifications, retain late-reply recovery and glyph
-  selection, and submit renderer output atomically with exact raster dimensions.
-- Terminal overrides now use `NTPICTURE_KITTY` and
-  `NTPICTURE_TMUX_PASSTHROUGH`; update the transport example and tests.
-
-- Add anisotropic texture filtering with `WithAnisotropy`, `SetAnisotropy`, and
-  `Frame.Anisotropy`. Charts default to 4×; 1× selects mipmapping alone and up to
-  16× retains more detail at shallow angles. The gallery accepts `-anisotropy`.
-- Adopt ntgpuimage v0.3.0 and the matching nt3d revision; ntgpuimage no longer
-  needs a local dependency snapshot or extra CI checkout.
-
-- Upgrade nt3d and ntgpuimage together for mipmapped textures and linear-light
-  texture filtering in GPU and software rendering. Chart lighting is unchanged.
-  Dependency bootstrapping and CI pin nt3d and ntpicture.
-
-- Add fuzz tests for ticks, label text, palettes, clipping, and model rendering
-  (`task fuzz`). Fix a non-finite plot transform when every datum shares an
-  axis value beyond ~1.7e35.
-
-- Add a multi-chart demo sharing one TerminalSession, with independent controls
-  and coordinated cleanup; document per-chart discovery when no session is supplied.
-
-- Remove chart exports of `MaxPoints`, `MaxVectors`, `MaxMeshTriangles`, and
-  `MaxMeshIndices`; use the constants from `nimbleterminal.dev/nt3d` directly.
-
-- Remove the local `math3d` package. Chart APIs, examples, and tests use
-  `nimbleterminal.dev/nt3d/math` (`nt3dmath`) directly.
-
-- Base rendering, shared math, geometry validation, and immutable texture storage
-  on nt3d while retaining the NimbleMarkets module and chart-specific APIs/picking.
-- Use ntpicture Picture and explicit TerminalSession; add WithTerminalSession,
-  WithImageIDAllocator, PictureStatus, and Dispose. Remove WithKittyID.
-- Preserve presentation cleanup commands across resize, legend, and render-mode
-  changes; forward late completions after disposal and use exact raster geometry.
-- Software surfaces retain all triangles and support engine near-plane clipping.
-- Migrate the transport diagnostic to ntpicture and ntgpuimage. Its P metric and
-  presentation_ms report replace encoding-only timing; raw APC byte counts are
-  no longer exposed by the presentation API.
-- Bootstrap committed dependency snapshots with task deps while the pinned
-  dependency revisions are unpublished; CI uses the same revisions.
-
-- Both browser examples use go-booba v0.9.2, whose bundled ghostty-web fixes
-  restore animation in Safari and prevent grey placeholder cells while dragging.
+- Replace `math3d` imports with `nimbleterminal.dev/nt3d/math`.
+- Use `MaxPoints`, `MaxVectors`, `MaxMeshTriangles`, and `MaxMeshIndices` from
+  `nimbleterminal.dev/nt3d` instead of this package.
+- Replace `WithKittyID` with `WithImageIDAllocator`. Use `WithTerminalSession`
+  to share terminal discovery, `PictureStatus` to inspect presentation, and
+  execute `Dispose` before quitting to clean up terminal images.
+- Rename terminal overrides to `NTPICTURE_KITTY` and `NTPICTURE_TMUX_PASSTHROUGH`.
+- Custom renderers must return the exact requested frame dimensions.
 
 ## [0.2.2] - 2026-10-12
 
@@ -128,7 +98,7 @@ applications.
 - Large scenes may be subsampled in fallback modes. See the
   [API limits](API.md#limits-and-fallback) for details.
 
-[Unreleased]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.2.2...HEAD
+[0.3.0]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/NimbleMarkets/ntcharts3d/releases/tag/v0.2.2
 [0.2.1]: https://github.com/NimbleMarkets/ntcharts3d/releases/tag/v0.2.1
 [0.2.0]: https://github.com/NimbleMarkets/ntcharts3d/releases/tag/v0.2.0
