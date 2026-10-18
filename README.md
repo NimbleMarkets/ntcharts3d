@@ -24,10 +24,10 @@ Rendering uses `nimbleterminal.dev/nt3d` for WebGPU, software, and wireframe.
 `nimbleterminal.dev/ntpicture` owns terminal sessions, image transport, and glyph output.
 The chart module remains `github.com/NimbleMarkets/ntcharts3d`.
 
-The latest released chart API before this migration is **v0.2.2**:
+Install **v0.3.0**:
 
 ```sh
-go get github.com/NimbleMarkets/ntcharts3d@v0.2.2
+go get github.com/NimbleMarkets/ntcharts3d@v0.3.0
 ```
 
 See the [changelog](CHANGELOG.md), [API guide](API.md),
