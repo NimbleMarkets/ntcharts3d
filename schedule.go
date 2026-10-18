@@ -157,6 +157,7 @@ func (m *Model) schedule() tea.Cmd {
 	resolution := m.resolution()
 	f := m.frame()
 	id, seq, renderMode, r, cols, rows := m.id, m.seq, m.renderMode, m.renderer, m.plotWidth(), m.plotHeight()
+	software := m.software
 	return tea.Batch(resolution, func() tea.Msg {
 		start := time.Now()
 		var img image.Image
@@ -174,7 +175,7 @@ func (m *Model) schedule() tea.Cmd {
 		}
 		if renderMode == Software {
 			var renderErr error
-			img, renderErr = renderSoftware(f)
+			img, renderErr = software.Render(f)
 			if renderErr != nil {
 				err = renderErr
 			}

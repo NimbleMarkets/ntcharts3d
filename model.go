@@ -3,6 +3,7 @@
 package ntcharts3d
 
 import (
+	"errors"
 	"fmt"
 	"image/color"
 	"sync/atomic"
@@ -43,6 +44,7 @@ type Model struct {
 	colors                       Palette
 	background                   color.RGBA
 	renderer                     Renderer
+	software                     *softwareRenderer
 	renderMode                   RenderMode
 	requestedRenderMode          RenderMode
 	width, height, maxPoints     int
@@ -77,6 +79,7 @@ func New(width, height int, opts ...Option) *Model {
 		dirty:              true,
 		kittyFormat:        picture.KittyFormatZlib,
 		renderer:           &gpuRenderer{},
+		software:           &softwareRenderer{},
 		colorLegendVisible: true,
 	}
 	for _, o := range opts {
@@ -209,15 +212,20 @@ func (m *Model) Dispose() tea.Cmd {
 	return cmd
 }
 
-// Close releases GPU resources after the event loop exits. Call Dispose while
-// the loop is running to execute terminal placement cleanup.
+// Close releases GPU and software resources after the event loop exits. It is
+// idempotent and waits for active renders; queued software jobs are rejected.
+// Like other Model methods it must not overlap event-loop mutations, but may
+// overlap rendering commands. Call Dispose while the loop is running to execute
+// terminal placement cleanup.
 func (m *Model) Close() error {
 	m.Dispose()
 	if m.ownZones {
 		m.zones.Close()
 	}
+	var gpuErr error
 	if m.renderer != nil {
-		return m.renderer.Close()
+		gpuErr = m.renderer.Close()
+		m.renderer = nil
 	}
-	return nil
+	return errors.Join(gpuErr, m.software.Close())
 }

@@ -1,5 +1,7 @@
 # Presentation measurement and renderer lifetime
 
+**Update:** [Dedicated software renderer and measured depth reuse](depth-reuse.md) now implements the coordinated lifetime change. The original baseline below is retained for comparison.
+
 Measured 2026-10-18, Apple M5 Max, darwin/arm64, Go 1.27.2.
 Dependencies remain nt3d v0.2.0, ntpicture v0.1.0, ntgpuimage v0.3.0.
 No production code, filtering defaults, dependency pins, or sibling working

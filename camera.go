@@ -67,7 +67,7 @@ func (c Camera) basis() (eye, right, up, forward nt3dmath.Vec3) {
 	return
 }
 
-func (c Camera) Matrix(aspect float32) nt3dmath.Mat4 { return nt3d.Camera(c.valid()).Matrix(aspect) }
+func (c Camera) Matrix(aspect float32) nt3dmath.Mat4 { return c.engineCamera().Matrix(aspect) }
 
 // RayFromCell returns a ray through a cell center, accounting for cell dimensions.
 func (c Camera) RayFromCell(x, y, cols, rows, cellW, cellH int) nt3dmath.Ray {
@@ -75,5 +75,12 @@ func (c Camera) RayFromCell(x, y, cols, rows, cellW, cellH int) nt3dmath.Ray {
 }
 
 func (c Camera) ray(x, y float32, cols, rows, cw, ch int) nt3dmath.Ray {
-	return nt3d.Camera(c.valid()).RayFromPixel(x*float32(cw), y*float32(ch), cols*cw, rows*ch)
+	return c.engineCamera().RayFromPixel(x*float32(cw), y*float32(ch), cols*cw, rows*ch)
+}
+
+// Map fields explicitly so added engine camera features do not couple the
+// chart's public orbit-camera layout to the engine's struct layout.
+func (c Camera) engineCamera() nt3d.Camera {
+	c = c.valid()
+	return nt3d.Camera{Alpha: c.Alpha, Beta: c.Beta, Distance: c.Distance, Target: c.Target, Projection: c.Projection, AutoRotate: c.AutoRotate, ResumeAfter: c.ResumeAfter}
 }

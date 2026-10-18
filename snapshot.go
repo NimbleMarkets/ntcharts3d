@@ -21,7 +21,9 @@ import (
 // no image to give.
 //
 // Snapshot returns when the image is drawn. Like the chart's other methods,
-// it must not be called while another goroutine changes the chart.
+// it must not be called while another goroutine changes the chart. Rendering
+// is serialized with scheduled render commands; returned images remain owned
+// by the caller across later renders and Close.
 func (m *Model) Snapshot(width, height int) (image.Image, RenderMode, error) {
 	mode := m.requestedRenderMode
 	switch {
@@ -39,6 +41,6 @@ func (m *Model) Snapshot(width, height int) (image.Image, RenderMode, error) {
 			return img, WebGPU, nil
 		}
 	}
-	img, err := renderSoftware(f)
+	img, err := m.software.Render(f)
 	return img, Software, err
 }
