@@ -9,7 +9,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/lrstanley/bubblezone/v2 v2.0.0
 	golang.org/x/image v0.47.0
-	nimbleterminal.dev/nt3d v0.1.0
+	nimbleterminal.dev/nt3d v0.2.0
 	nimbleterminal.dev/ntpicture v0.1.0
 )
 

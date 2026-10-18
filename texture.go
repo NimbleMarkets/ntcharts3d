@@ -30,6 +30,20 @@ func NewTexture(src image.Image) (*Texture, error) {
 	if b.Dx() < 1 || b.Dy() < 1 || b.Dx() > 8192 || b.Dy() > 8192 {
 		return nil, fmt.Errorf("ntcharts3d: texture dimensions must be 1..8192")
 	}
+	// Concrete image opacity checks avoid boxing a color for every pixel.
+	// Keep the generic path for other image implementations.
+	switch img := src.(type) {
+	case *image.RGBA:
+		if !img.Opaque() {
+			return nil, fmt.Errorf("ntcharts3d: texture must be opaque")
+		}
+		return nt3d.NewTexture(src)
+	case *image.NRGBA:
+		if !img.Opaque() {
+			return nil, fmt.Errorf("ntcharts3d: texture must be opaque")
+		}
+		return nt3d.NewTexture(src)
+	}
 	for y := b.Min.Y; y < b.Max.Y; y++ {
 		for x := b.Min.X; x < b.Max.X; x++ {
 			_, _, _, a := src.At(x, y).RGBA()

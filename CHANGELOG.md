@@ -3,6 +3,13 @@
 Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d) are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
+## [0.3.1] - 2026-10-18
+
+- Avoid per-pixel allocations when validating opaque RGBA and NRGBA textures.
+  Update to `nt3d v0.2.0` for direct pixel copying into texture storage.
+- Preserve opacity validation, cropped image bounds and stride, and independent
+  texture ownership. No public API changes.
+
 ## [0.3.0]
 
 - Use `nt3d v0.1.0` for rendering and `ntpicture v0.1.0` for terminal images.
