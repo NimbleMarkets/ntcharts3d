@@ -1,0 +1,253 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/glyph/camera-18         	    1471	    243971 ns/op	         0 coalesced	      1471 completed	         0 direct-frames	     26489 output-ns/frame	       605.1 prepare-ns/op	         0 protocol-B/frame	    156909 render-ns/frame	      1471 requested	         0 shm-frames	     19482 view-B/frame	  226936 B/op	      55 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/camera-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:102 Presented:102 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=100
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:1192 Presented:1192 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1190
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:1473 Presented:1473 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1471
+BenchmarkPresentation/glyph/camera-18         	    1428	    245306 ns/op	         0 coalesced	      1428 completed	         0 direct-frames	     26287 output-ns/frame	       669.8 prepare-ns/op	         0 protocol-B/frame	    158962 render-ns/frame	      1428 requested	         0 shm-frames	     19481 view-B/frame	  226876 B/op	      55 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/camera-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:102 Presented:102 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=100
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:1430 Presented:1430 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1428
+BenchmarkPresentation/glyph/camera-18         	    1473	    241975 ns/op	         0 coalesced	      1473 completed	         0 direct-frames	     25578 output-ns/frame	       651.3 prepare-ns/op	         0 protocol-B/frame	    157259 render-ns/frame	      1473 requested	         0 shm-frames	     19482 view-B/frame	  226875 B/op	      55 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/camera-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:102 Presented:102 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=100
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:1475 Presented:1475 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1473
+BenchmarkPresentation/glyph/texture-18        	      60	   5835767 ns/op	         0 coalesced	        60.00 completed	         0 direct-frames	     27297 output-ns/frame	    205963 prepare-ns/op	         0 protocol-B/frame	   5540049 render-ns/frame	        60.00 requested	         0 shm-frames	     19442 view-B/frame	 2676526 B/op	      87 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/texture-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:62 Presented:62 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=60
+BenchmarkPresentation/glyph/texture-18        	      60	   5844101 ns/op	         0 coalesced	        60.00 completed	         0 direct-frames	     28755 output-ns/frame	    188051 prepare-ns/op	         0 protocol-B/frame	   5563258 render-ns/frame	        60.00 requested	         0 shm-frames	     19442 view-B/frame	 2676197 B/op	      87 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/texture-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:62 Presented:62 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=60
+BenchmarkPresentation/glyph/texture-18        	      60	   5856481 ns/op	         0 coalesced	        60.00 completed	         0 direct-frames	     30638 output-ns/frame	    186326 prepare-ns/op	         0 protocol-B/frame	   5572785 render-ns/frame	        60.00 requested	         0 shm-frames	     19442 view-B/frame	 2676172 B/op	      87 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/texture-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:62 Presented:62 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=60
+BenchmarkPresentation/glyph/bars-18           	    2421	    144873 ns/op	         0 coalesced	      2421 completed	         0 direct-frames	     22286 output-ns/frame	       795.3 prepare-ns/op	         0 protocol-B/frame	     81359 render-ns/frame	      2421 requested	         0 shm-frames	     11433 view-B/frame	  209759 B/op	      86 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/bars-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:102 Presented:102 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=100
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:2423 Presented:2423 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=2421
+BenchmarkPresentation/glyph/bars-18           	    2480	    144023 ns/op	         0 coalesced	      2480 completed	         0 direct-frames	     21965 output-ns/frame	       774.7 prepare-ns/op	         0 protocol-B/frame	     81456 render-ns/frame	      2480 requested	         0 shm-frames	     11433 view-B/frame	  209761 B/op	      86 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/bars-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:102 Presented:102 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=100
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:2482 Presented:2482 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=2480
+BenchmarkPresentation/glyph/bars-18           	    2485	    145056 ns/op	         0 coalesced	      2485 completed	         0 direct-frames	     22010 output-ns/frame	       714.5 prepare-ns/op	         0 protocol-B/frame	     82073 render-ns/frame	      2485 requested	         0 shm-frames	     11434 view-B/frame	  209759 B/op	      86 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/bars-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:102 Presented:102 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=100
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:2487 Presented:2487 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=2485
+BenchmarkPresentation/glyph/burst-18          	     818	    442214 ns/op	      1636 coalesced	      1636 completed	         0 direct-frames	     29606 output-ns/frame	       766.5 prepare-ns/op	         0 protocol-B/frame	    163660 render-ns/frame	      3272 requested	         0 shm-frames	     19480 view-B/frame	  453934 B/op	     113 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/burst-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:4 Presented:4 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=2
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:202 Presented:202 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=200
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:1638 Presented:1638 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1636
+BenchmarkPresentation/glyph/burst-18          	     820	    436509 ns/op	      1640 coalesced	      1640 completed	         0 direct-frames	     29148 output-ns/frame	       617.2 prepare-ns/op	         0 protocol-B/frame	    162541 render-ns/frame	      3280 requested	         0 shm-frames	     19480 view-B/frame	  453690 B/op	     112 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/burst-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:4 Presented:4 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=2
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:202 Presented:202 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=200
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:1642 Presented:1642 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1640
+BenchmarkPresentation/glyph/burst-18          	     823	    435932 ns/op	      1646 coalesced	      1646 completed	         0 direct-frames	     29183 output-ns/frame	       565.6 prepare-ns/op	         0 protocol-B/frame	    162311 render-ns/frame	      3292 requested	         0 shm-frames	     19481 view-B/frame	  453699 B/op	     112 allocs/op
+--- BENCH: BenchmarkPresentation/glyph/burst-18
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:4 Presented:4 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=2
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:202 Presented:202 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=200
+    presentation_bench_test.go:286: raster=(80,40) renderer=software picture=0 transport={Generation:1648 Presented:1648 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1646
+BenchmarkPresentation/direct/camera-18        	      37	   9655310 ns/op	         0 coalesced	        37.00 completed	        37.00 direct-frames	    933103 output-ns/frame	       870.5 prepare-ns/op	     47909 protocol-B/frame	   8686141 render-ns/frame	        37.00 requested	         0 shm-frames	     13444 view-B/frame	 3685893 B/op	     208 allocs/op
+--- BENCH: BenchmarkPresentation/direct/camera-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:39 Presented:39 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=37
+BenchmarkPresentation/direct/camera-18        	      37	   9765232 ns/op	         0 coalesced	        37.00 completed	        37.00 direct-frames	    921191 output-ns/frame	       890.8 prepare-ns/op	     47909 protocol-B/frame	   8807606 render-ns/frame	        37.00 requested	         0 shm-frames	     13444 view-B/frame	 3685651 B/op	     208 allocs/op
+--- BENCH: BenchmarkPresentation/direct/camera-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:39 Presented:39 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=37
+BenchmarkPresentation/direct/camera-18        	      33	   9902630 ns/op	         0 coalesced	        33.00 completed	        33.00 direct-frames	    969414 output-ns/frame	      1534 prepare-ns/op	     48338 protocol-B/frame	   8892556 render-ns/frame	        33.00 requested	         0 shm-frames	     13444 view-B/frame	 3689368 B/op	     209 allocs/op
+--- BENCH: BenchmarkPresentation/direct/camera-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:35 Presented:35 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=33
+BenchmarkPresentation/direct/texture-18       	      22	  15218670 ns/op	         0 coalesced	        22.00 completed	        22.00 direct-frames	    726089 output-ns/frame	    191604 prepare-ns/op	     31590 protocol-B/frame	  14262477 render-ns/frame	        22.00 requested	         0 shm-frames	     13444 view-B/frame	 5980718 B/op	     212 allocs/op
+--- BENCH: BenchmarkPresentation/direct/texture-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:24 Presented:24 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=22
+BenchmarkPresentation/direct/texture-18       	      21	  16123117 ns/op	         0 coalesced	        21.00 completed	        21.00 direct-frames	    836655 output-ns/frame	    199978 prepare-ns/op	     31590 protocol-B/frame	  15043873 render-ns/frame	        21.00 requested	         0 shm-frames	     13444 view-B/frame	 5980256 B/op	     211 allocs/op
+--- BENCH: BenchmarkPresentation/direct/texture-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:23 Presented:23 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=21
+BenchmarkPresentation/direct/texture-18       	      24	  15088833 ns/op	         0 coalesced	        24.00 completed	        24.00 direct-frames	    720125 output-ns/frame	    181658 prepare-ns/op	     31590 protocol-B/frame	  14147955 render-ns/frame	        24.00 requested	         0 shm-frames	     13444 view-B/frame	 5980256 B/op	     211 allocs/op
+--- BENCH: BenchmarkPresentation/direct/texture-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:26 Presented:26 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=24
+BenchmarkPresentation/direct/bars-18          	     130	   2729374 ns/op	         0 coalesced	       130.0 completed	       130.0 direct-frames	    695046 output-ns/frame	       730.7 prepare-ns/op	     16375 protocol-B/frame	   1996126 render-ns/frame	       130.0 requested	         0 shm-frames	     13445 view-B/frame	 3455976 B/op	     182 allocs/op
+--- BENCH: BenchmarkPresentation/direct/bars-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:102 Presented:102 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=100
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:132 Presented:132 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=130
+BenchmarkPresentation/direct/bars-18          	     132	   2765955 ns/op	         0 coalesced	       132.0 completed	       132.0 direct-frames	    659356 output-ns/frame	       768.0 prepare-ns/op	     16401 protocol-B/frame	   2068735 render-ns/frame	       132.0 requested	         0 shm-frames	     13445 view-B/frame	 3455948 B/op	     181 allocs/op
+--- BENCH: BenchmarkPresentation/direct/bars-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:102 Presented:102 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=100
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:134 Presented:134 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=132
+BenchmarkPresentation/direct/bars-18          	     127	   2759539 ns/op	         0 coalesced	       127.0 completed	       127.0 direct-frames	    697252 output-ns/frame	       924.2 prepare-ns/op	     16399 protocol-B/frame	   2025556 render-ns/frame	       127.0 requested	         0 shm-frames	     13445 view-B/frame	 3456072 B/op	     183 allocs/op
+--- BENCH: BenchmarkPresentation/direct/bars-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:89 Presented:89 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=87
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:129 Presented:129 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=127
+BenchmarkPresentation/direct/burst-18         	      15	  21665033 ns/op	        30.00 coalesced	        30.00 completed	        30.00 direct-frames	   2078346 output-ns/frame	      2958 prepare-ns/op	     48374 protocol-B/frame	   8716761 render-ns/frame	        60.00 requested	         0 shm-frames	     13444 view-B/frame	 7386538 B/op	     430 allocs/op
+--- BENCH: BenchmarkPresentation/direct/burst-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:4 Presented:4 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=2
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:32 Presented:32 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=30
+BenchmarkPresentation/direct/burst-18         	      16	  21790010 ns/op	        32.00 coalesced	        32.00 completed	        32.00 direct-frames	   2073178 output-ns/frame	      1633 prepare-ns/op	     47856 protocol-B/frame	   8791996 render-ns/frame	        64.00 requested	         0 shm-frames	     13444 view-B/frame	 7375128 B/op	     423 allocs/op
+--- BENCH: BenchmarkPresentation/direct/burst-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:4 Presented:4 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=2
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:34 Presented:34 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=32
+BenchmarkPresentation/direct/burst-18         	      16	  21614703 ns/op	        32.00 coalesced	        32.00 completed	        32.00 direct-frames	   2072783 output-ns/frame	      1088 prepare-ns/op	     47856 protocol-B/frame	   8704961 render-ns/frame	        64.00 requested	         0 shm-frames	     13444 view-B/frame	 7375455 B/op	     426 allocs/op
+--- BENCH: BenchmarkPresentation/direct/burst-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:4 Presented:4 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=2
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:34 Presented:34 Busy:false Err:<nil> Format:zlib Medium:direct} aniso=4 shrink=0 frames=32
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	10.666s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/camera-18         	      20	   9200269 ns/op	         0 coalesced	        20.00 completed	         0 direct-frames	    304698 output-ns/frame	      1564 prepare-ns/op	       103.0 protocol-B/frame	   8858475 render-ns/frame	        20.00 requested	        20.00 shm-frames	     13463 view-B/frame	 1735371 B/op	     170 allocs/op
+--- BENCH: BenchmarkPresentation/shm/camera-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:22 Presented:22 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=20
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.388s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/camera-18         	      20	   9098252 ns/op	         0 coalesced	        20.00 completed	         0 direct-frames	    302733 output-ns/frame	      1240 prepare-ns/op	       103.0 protocol-B/frame	   8757110 render-ns/frame	        20.00 requested	        20.00 shm-frames	     13443 view-B/frame	 1735301 B/op	     169 allocs/op
+--- BENCH: BenchmarkPresentation/shm/camera-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:22 Presented:22 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=20
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.379s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/camera-18         	      20	   9274627 ns/op	         0 coalesced	        20.00 completed	         0 direct-frames	    315744 output-ns/frame	      1427 prepare-ns/op	       103.0 protocol-B/frame	   8920600 render-ns/frame	        20.00 requested	        20.00 shm-frames	     13403 view-B/frame	 1735040 B/op	     169 allocs/op
+--- BENCH: BenchmarkPresentation/shm/camera-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:22 Presented:22 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=20
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.385s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/texture-18         	      20	  14758825 ns/op	         0 coalesced	        20.00 completed	         0 direct-frames	    299821 output-ns/frame	    202081 prepare-ns/op	       103.0 protocol-B/frame	  14220960 render-ns/frame	        20.00 requested	        20.00 shm-frames	     13423 view-B/frame	 4184590 B/op	     212 allocs/op
+--- BENCH: BenchmarkPresentation/shm/texture-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:22 Presented:22 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=20
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.493s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/texture-18         	      20	  14785190 ns/op	         0 coalesced	        20.00 completed	         0 direct-frames	    308850 output-ns/frame	    198096 prepare-ns/op	       103.0 protocol-B/frame	  14237775 render-ns/frame	        20.00 requested	        20.00 shm-frames	     13443 view-B/frame	 4184498 B/op	     211 allocs/op
+--- BENCH: BenchmarkPresentation/shm/texture-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:22 Presented:22 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=20
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.503s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/texture-18         	      20	  14743348 ns/op	         0 coalesced	        20.00 completed	         0 direct-frames	    308217 output-ns/frame	    195417 prepare-ns/op	       103.0 protocol-B/frame	  14201906 render-ns/frame	        20.00 requested	        20.00 shm-frames	     13423 view-B/frame	 4184537 B/op	     211 allocs/op
+--- BENCH: BenchmarkPresentation/shm/texture-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:22 Presented:22 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=20
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.502s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/bars-18         	      20	   2776654 ns/op	         0 coalesced	        20.00 completed	         0 direct-frames	    362736 output-ns/frame	      1865 prepare-ns/op	       103.0 protocol-B/frame	   2373910 render-ns/frame	        20.00 requested	        20.00 shm-frames	     13444 view-B/frame	 1767402 B/op	     189 allocs/op
+--- BENCH: BenchmarkPresentation/shm/bars-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:22 Presented:22 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=20
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.220s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/bars-18         	      20	   2615556 ns/op	         0 coalesced	        20.00 completed	         0 direct-frames	    342777 output-ns/frame	      1319 prepare-ns/op	       103.0 protocol-B/frame	   2236254 render-ns/frame	        20.00 requested	        20.00 shm-frames	     13444 view-B/frame	 1767272 B/op	     188 allocs/op
+--- BENCH: BenchmarkPresentation/shm/bars-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:22 Presented:22 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=20
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.208s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/bars-18         	      20	   2630608 ns/op	         0 coalesced	        20.00 completed	         0 direct-frames	    312758 output-ns/frame	       891.7 prepare-ns/op	       103.0 protocol-B/frame	   2279985 render-ns/frame	        20.00 requested	        20.00 shm-frames	     13444 view-B/frame	 1767436 B/op	     188 allocs/op
+--- BENCH: BenchmarkPresentation/shm/bars-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:3 Presented:3 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=1
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:22 Presented:22 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=20
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.212s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/burst-18         	      20	  20239240 ns/op	        40.00 coalesced	        40.00 completed	         0 direct-frames	   1366549 output-ns/frame	      1202 prepare-ns/op	       103.0 protocol-B/frame	   8742135 render-ns/frame	        80.00 requested	        40.00 shm-frames	     13443 view-B/frame	 3474830 B/op	     430 allocs/op
+--- BENCH: BenchmarkPresentation/shm/burst-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:4 Presented:4 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=2
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:42 Presented:42 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=40
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.619s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/burst-18         	      20	  20132394 ns/op	        40.00 coalesced	        40.00 completed	         0 direct-frames	   1357569 output-ns/frame	      1335 prepare-ns/op	       101.0 protocol-B/frame	   8691252 render-ns/frame	        80.00 requested	        40.00 shm-frames	     13363 view-B/frame	 3474997 B/op	     428 allocs/op
+--- BENCH: BenchmarkPresentation/shm/burst-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:4 Presented:4 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=2
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:42 Presented:42 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=40
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.620s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkPresentation/shm/burst-18         	      20	  20437417 ns/op	        40.00 coalesced	        40.00 completed	         0 direct-frames	   1382169 output-ns/frame	      1788 prepare-ns/op	       103.0 protocol-B/frame	   8818227 render-ns/frame	        80.00 requested	        40.00 shm-frames	     13443 view-B/frame	 3474654 B/op	     429 allocs/op
+--- BENCH: BenchmarkPresentation/shm/burst-18
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:4 Presented:4 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=2
+    presentation_bench_test.go:286: raster=(640,320) renderer=software picture=1 transport={Generation:42 Presented:42 Busy:false Err:<nil> Format:rgba Medium:shm} aniso=4 shrink=0 frames=40
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	0.628s
+goos: darwin
+goarch: arm64
+pkg: github.com/NimbleMarkets/ntcharts3d
+cpu: Apple M5 Max
+BenchmarkSoftwareRendererLifetime/camera/retain=false-18         	      40	   8611231 ns/op	 1638503 B/op	       5 allocs/op
+BenchmarkSoftwareRendererLifetime/camera/retain=false-18         	      40	   8645315 ns/op	 1638500 B/op	       5 allocs/op
+BenchmarkSoftwareRendererLifetime/camera/retain=false-18         	      40	   8620838 ns/op	 1638500 B/op	       5 allocs/op
+BenchmarkSoftwareRendererLifetime/camera/retain=true-18          	      42	   8622257 ns/op	 1638500 B/op	       5 allocs/op
+BenchmarkSoftwareRendererLifetime/camera/retain=true-18          	      40	   8628182 ns/op	 1638500 B/op	       5 allocs/op
+BenchmarkSoftwareRendererLifetime/camera/retain=true-18          	      40	   8620015 ns/op	 1638500 B/op	       5 allocs/op
+BenchmarkSoftwareRendererLifetime/bars/retain=false-18           	     182	   1943261 ns/op	 1671273 B/op	      37 allocs/op
+BenchmarkSoftwareRendererLifetime/bars/retain=false-18           	     182	   1963571 ns/op	 1671274 B/op	      37 allocs/op
+BenchmarkSoftwareRendererLifetime/bars/retain=false-18           	     182	   1971457 ns/op	 1671272 B/op	      37 allocs/op
+BenchmarkSoftwareRendererLifetime/bars/retain=true-18            	     181	   1970434 ns/op	 1671277 B/op	      37 allocs/op
+BenchmarkSoftwareRendererLifetime/bars/retain=true-18            	     183	   1968743 ns/op	 1671275 B/op	      37 allocs/op
+BenchmarkSoftwareRendererLifetime/bars/retain=true-18            	     183	   1962094 ns/op	 1671276 B/op	      37 allocs/op
+PASS
+ok  	github.com/NimbleMarkets/ntcharts3d	6.158s

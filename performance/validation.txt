@@ -1,0 +1,40 @@
+Required checks: task ci (exit 0)
+task: [fmt-check] unformatted_files=$(gofmt -l *.go cmd/wasm-build/*.go examples/gallery/*.go examples/transport/*.go examples/multichart/*.go)
+if [ -n "$unformatted_files" ]; then
+  printf '%s\n' "$unformatted_files"
+  exit 1
+fi
+
+task: [go-tidy-check] go -C '.' mod tidy -diff
+task: [go-tidy-check] go -C 'examples/gallery' mod tidy -diff
+task: [go-tidy-check] go -C 'examples/transport' mod tidy -diff
+task: [go-verify] go -C '.' mod verify
+all modules verified
+task: [go-verify] go -C 'examples/gallery' mod verify
+all modules verified
+task: [go-verify] go -C 'examples/transport' mod verify
+all modules verified
+task: [test-race] NTCHARTS3D_TRANSPORT_GPU_TEST=0 go -C '.' test -mod=readonly -race ./...
+ok  	github.com/NimbleMarkets/ntcharts3d	7.711s
+?   	github.com/NimbleMarkets/ntcharts3d/cmd/wasm-build	[no test files]
+ok  	github.com/NimbleMarkets/ntcharts3d/examples/multichart	(cached)
+task: [test-race] NTCHARTS3D_TRANSPORT_GPU_TEST=0 go -C 'examples/gallery' test -mod=readonly -race ./...
+?   	github.com/NimbleMarkets/ntcharts3d/examples/gallery	[no test files]
+task: [test-race] NTCHARTS3D_TRANSPORT_GPU_TEST=0 go -C 'examples/transport' test -mod=readonly -race ./...
+ok  	github.com/NimbleMarkets/ntcharts3d/examples/transport	(cached)
+task: [vet] go -C '.' vet -mod=readonly ./...
+task: [vet] go -C 'examples/gallery' vet -mod=readonly ./...
+task: [vet] go -C 'examples/transport' vet -mod=readonly ./...
+task: [build-lib] go build -mod=readonly ./...
+task: [build-ex-multichart] go build -mod=readonly -o bin/ntcharts3d-multichart ./examples/multichart
+task: [build-ex-gallery] go build -mod=readonly -o ../../bin/ntcharts3d-gallery .
+task: [build-ex-transport] go build -mod=readonly -o ../../bin/ntcharts3d-transport .
+task: [build-wasm-transport] mkdir -p web
+task: [build-wasm-gallery] mkdir -p web
+task: [build-wasm-transport] go build -mod=readonly -o web/app.wasm .
+task: [build-wasm-gallery] go build -mod=readonly -o web/app.wasm .
+
+Isolated consumer: go test -mod=readonly ./mapview3d (PASS)
+Presentation lifecycle: go test -race -run TestPresentationPump -count=3 . (PASS)
+WASM lifecycle and glyph benchmarks: see presentation-wasm.txt (PASS)
+Isolated consumer: go test -mod=readonly -race ./mapview3d (PASS)
