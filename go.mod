@@ -9,8 +9,8 @@ require (
 	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/lrstanley/bubblezone/v2 v2.0.0
 	golang.org/x/image v0.47.0
-	nimbleterminal.dev/nt3d v0.2.0
-	nimbleterminal.dev/ntpicture v0.1.0
+	nimbleterminal.dev/nt3d v0.3.1
+	nimbleterminal.dev/ntpicture v0.1.1
 )
 
 require (
@@ -21,11 +21,11 @@ require (
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/go-webgpu/goffi v0.6.4 // indirect
+	github.com/go-webgpu/goffi v0.6.7 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/gputypes v0.8.0 // indirect
-	github.com/gogpu/naga v0.19.0 // indirect
+	github.com/gogpu/naga v0.20.3 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
@@ -35,6 +35,6 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
-	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
+	nimbleterminal.dev/ntcanvas v0.1.1 // indirect
+	nimbleterminal.dev/ntgpuimage v0.4.0 // indirect
 )

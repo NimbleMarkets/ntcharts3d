@@ -24,10 +24,10 @@ Rendering uses `nimbleterminal.dev/nt3d` for WebGPU, software, and wireframe.
 `nimbleterminal.dev/ntpicture` owns terminal sessions, image transport, and glyph output.
 The chart module remains `github.com/NimbleMarkets/ntcharts3d`.
 
-Install **v0.3.1**:
+Install **v0.3.2**:
 
 ```sh
-go get github.com/NimbleMarkets/ntcharts3d@v0.3.1
+go get github.com/NimbleMarkets/ntcharts3d@v0.3.2
 ```
 
 See the [changelog](CHANGELOG.md), [API guide](API.md),
@@ -94,8 +94,8 @@ The Pages gallery uses Kitty shared memory with the bundled terminal assets.
 ## Dependencies
 
 The library and examples require Go 1.26.8. Dependencies resolve as published
-Go modules: `ntpicture v0.1.0`, `nt3d v0.2.0`, `ntgpuimage v0.3.0`, and
-`ntcanvas v0.1.0`. NTCharts is no longer a dependency.
+Go modules: `ntpicture v0.1.1`, `nt3d v0.3.1`, `ntgpuimage v0.4.0`, and
+`ntcanvas v0.1.1`. NTCharts is no longer a dependency.
 
 Run `task deps` to download dependencies for all three modules. Local sibling
 repositories and `.deps/` snapshots are no longer needed. CI uses the same

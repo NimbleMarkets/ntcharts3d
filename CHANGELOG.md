@@ -3,6 +3,16 @@
 Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d) are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
+## [0.3.2] - 2026-10-19
+
+- Update to `nt3d v0.3.1`, `ntpicture v0.1.1`, `ntgpuimage v0.4.0`, and
+  `ntcanvas v0.1.1`. The examples use `go-booba v0.10.3`.
+- Retain a dedicated software renderer across chart frames and snapshots instead
+  of constructing one per render. With `nt3d v0.3.1` depth storage is reused, so a
+  steady 640×320 software render avoids an 819,200-byte allocation per frame.
+- `Close` now releases both the GPU and software renderers, is idempotent, and
+  rejects queued software jobs after it runs. No public API changes.
+
 ## [0.3.1] - 2026-10-18
 
 - Avoid per-pixel allocations when validating opaque RGBA and NRGBA textures.
@@ -105,6 +115,8 @@ applications.
 - Large scenes may be subsampled in fallback modes. See the
   [API limits](API.md#limits-and-fallback) for details.
 
+[0.3.2]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/NimbleMarkets/ntcharts3d/releases/tag/v0.2.2
 [0.2.1]: https://github.com/NimbleMarkets/ntcharts3d/releases/tag/v0.2.1
