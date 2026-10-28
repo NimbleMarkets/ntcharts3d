@@ -3,7 +3,7 @@
 The site runs the gallery with stock Go or TinyGo. Each build has its own
 `wasm_exec.js`; the compiler selector loads one gallery at a time.
 
-Install [TinyGo 0.43.0](https://tinygo.org/getting-started/install/), then run
+Install [TinyGo 0.44.0](https://tinygo.org/getting-started/install/), then run
 from the repository root:
 
 ```sh
@@ -23,16 +23,16 @@ The build task selects Go 1.26.8 for both compilers. With Go 1.27.1, TinyGo
 map runtime uses `internal/abi` names that TinyGo's copy lacks (tinygo#5684).
 The WASM gallery
 uses `tea.WithoutSignalHandler()` for TinyGo's browser signal limitation.
-The TinyGo build also selects `-gc=boehm`: its default collector stalled in
-`gcBlock.findHead` during gallery rendering. Disabling signals alone did not
-prevent those stalls.
+The TinyGo build keeps `-gc=boehm`, selected after TinyGo 0.42's default
+collector stalled in `gcBlock.findHead` during gallery rendering. Disabling
+signals alone did not prevent those stalls.
 
 The builder writes `web/dist/`, including compiler versions and binary sizes.
 HTML, styles, and scripts in `web/` are source files. Generated files are ignored
 by Git. Relative asset URLs work at `/` and under `/ntcharts3d/`.
 
 The site uses Kitty shared memory and the terminal assets bundled with go-booba
-v0.9.2. Terminal initialization creates the image registry before Go starts.
+v0.10.5. Terminal initialization creates the image registry before Go starts.
 The chart header reports `Kitty/shm` when frames use shared memory. No local
 ghostty-web checkout or asset overlay is needed.
 
@@ -49,6 +49,9 @@ workflow verifies the complete TinyGo build and uploads `web/dist/` as its Pages
 artifact. Browser checks are still needed when compiler or terminal pins change.
 
 ## Local validation
+
+The TinyGo 0.44.0 browser benchmark summary
+is recorded in [the performance report](../performance/tinygo-0.44/README.md).
 
 On 2026-10-14, the nt3d/ntpicture migration passed `task ci`, `task test-gpu`
 (Apple M5 Max), `task build-wasm-site`, and `actionlint`. In Chrome, Go 1.26.8
