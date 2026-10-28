@@ -3,6 +3,16 @@
 Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d) are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
+## [0.3.3] - 2026-10-28
+
+- Update to `nt3d v0.7.0`, `ntgpuimage v0.5.0`, `ntpicture v0.1.2`, and
+  `ntcanvas v0.1.2`. The examples use `go-booba v0.10.5`.
+- Update Bubble Tea to v2.1.1 and ultraviolet to its latest revision. Preserve
+  the examples' pinned Bubble Tea fork for browser builds.
+- Build the demo site with TinyGo 0.44.0. Local browser measurements show
+  modestly higher throughput, smaller WASM output, and substantially lower
+  retained JS buffer memory with Boehm GC. No public API changes.
+
 ## [0.3.2] - 2026-10-19
 
 - Update to `nt3d v0.3.1`, `ntpicture v0.1.1`, `ntgpuimage v0.4.0`, and
@@ -115,6 +125,7 @@ applications.
 - Large scenes may be subsampled in fallback modes. See the
   [API limits](API.md#limits-and-fallback) for details.
 
+[0.3.3]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.2.2...v0.3.0
