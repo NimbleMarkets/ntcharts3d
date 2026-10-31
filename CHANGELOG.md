@@ -3,6 +3,14 @@
 Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d) are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
+## [0.3.4] - 2026-10-30
+
+- Update to `nt3d v0.8.0`, `ntpicture v0.1.4`, `ntgpuimage v0.6.0`, and
+  `ntcanvas v0.1.3`. The examples use `go-booba v0.10.7`.
+- Update indirect dependencies to `naga v0.20.4` and `terminfo v1.3.0`.
+  Preserve the examples' pinned Bubble Tea fork for browser builds.
+- Refresh dependency documentation. No public API changes.
+
 ## [0.3.3] - 2026-10-28
 
 - Update to `nt3d v0.7.0`, `ntgpuimage v0.5.0`, `ntpicture v0.1.2`, and
@@ -125,6 +133,7 @@ applications.
 - Large scenes may be subsampled in fallback modes. See the
   [API limits](API.md#limits-and-fallback) for details.
 
+[0.3.4]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.0...v0.3.1

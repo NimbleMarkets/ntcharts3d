@@ -25,7 +25,7 @@ toggles select cached Picture configurations sharing one session and allocator.
 
 From the repository root, use `task transport -- <flags>` to run this example.
 `task build-web` prepares both browser examples; `task serve-transport` serves
-this one. go-booba v0.9.2 bundles the required terminal assets.
+this one. go-booba v0.10.7 bundles the required terminal assets.
 
 This example is its own Go module. The go-booba pin sets
 `TERM_PROGRAM=ghostty` so picture's Kitty probe runs in the browser.
@@ -47,7 +47,7 @@ python3 -m http.server -d web 8765   # then open http://localhost:8765/
 ```
 
 The browser build needs the pinned Bubble Tea fork `replace` already in
-`go.mod` from go-booba v0.9.2.
+`go.mod` from go-booba v0.10.7.
 
 Refresh the page after rebuilding, then press `m` to enable shared memory.
 The header should show `shm`; `m` again returns to the selected direct format.
@@ -147,7 +147,7 @@ loop ran at all:
   re-transmitted under the same id lands at the same address, so the gate
   dropped every frame and the sphere only repainted where a drag dirtied
   cells. The fix (renderer invalidation on any written chunk carrying
-  `ESC _ G`) is included in the terminal assets bundled with go-booba v0.9.2.
+  `ESC _ G`) is included in the terminal assets bundled with go-booba v0.10.7.
 
 Shared memory removes PNG encoding and decoding from that browser frame budget.
 

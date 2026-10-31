@@ -24,10 +24,10 @@ Rendering uses `nimbleterminal.dev/nt3d` for WebGPU, software, and wireframe.
 `nimbleterminal.dev/ntpicture` owns terminal sessions, image transport, and glyph output.
 The chart module remains `github.com/NimbleMarkets/ntcharts3d`.
 
-Install **v0.3.3**:
+Install **v0.3.4**:
 
 ```sh
-go get github.com/NimbleMarkets/ntcharts3d@v0.3.3
+go get github.com/NimbleMarkets/ntcharts3d@v0.3.4
 ```
 
 See the [changelog](CHANGELOG.md), [API guide](API.md),
@@ -82,7 +82,7 @@ repository root. `task` builds the library and native examples into `bin/`.
 | `task clean` | Remove compiled outputs, keeping browser assets |
 
 Builds and CI check module files without updating them.
-`task build-web` generates the browser assets bundled with go-booba v0.9.2,
+`task build-web` generates the browser assets bundled with go-booba v0.10.7,
 including Kitty shared-memory support. No local terminal asset overlay is needed.
 
 GitHub Actions runs `task ci` on Linux and macOS for pushes and pull requests.
@@ -94,15 +94,15 @@ The Pages gallery uses Kitty shared memory with the bundled terminal assets.
 ## Dependencies
 
 The library and examples require Go 1.26.8. Dependencies resolve as published
-Go modules: `ntpicture v0.1.1`, `nt3d v0.3.1`, `ntgpuimage v0.4.0`, and
-`ntcanvas v0.1.1`. NTCharts is no longer a dependency.
+Go modules: `ntpicture v0.1.4`, `nt3d v0.8.0`, `ntgpuimage v0.6.0`, and
+`ntcanvas v0.1.3`. NTCharts is no longer a dependency.
 
 Run `task deps` to download dependencies for all three modules. Local sibling
 repositories and `.deps/` snapshots are no longer needed. CI uses the same
 module versions and checksums.
 
 The gallery's `ntcharts3d => ../..` replacement uses this repository directly.
-Both examples use go-booba v0.9.2 and its Bubble Tea WASM fork at `c397c32a5074`.
+Both examples use go-booba v0.10.7 and its Bubble Tea WASM fork at `c397c32a5074`.
 The bundled ghostty-web assets support browser shared memory.
 
 The bundled ghostty-web graphics fixes restore frame updates in Safari and
