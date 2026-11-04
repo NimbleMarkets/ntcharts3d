@@ -8,7 +8,7 @@
     <a href="https://github.com/NimbleMarkets/ntcharts3d/blob/main/CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg"  alt="Code Of Conduct"></a>
 </p>
 
-3D charts for Bubble Tea terminals and go-booba browser applications.
+3D charts for Bubble Tea terminals and booba browser applications.
 
 <p align="center"><a href="https://nimblemarkets.github.io/ntcharts3d"/><b>Live Demo</b></a> (<a href="./examples/gallery/main.go">source</a>)<br><a href="https://nimblemarkets.github.io/ntcharts3d"/><img src="examples/gallery/demo.gif" alt="gallery demo" width="75%"/></a></p>
 
@@ -82,7 +82,7 @@ repository root. `task` builds the library and native examples into `bin/`.
 | `task clean` | Remove compiled outputs, keeping browser assets |
 
 Builds and CI check module files without updating them.
-`task build-web` generates the browser assets bundled with go-booba v0.10.7,
+`task build-web` generates the browser assets bundled with booba v0.12.1,
 including Kitty shared-memory support. No local terminal asset overlay is needed.
 
 GitHub Actions runs `task ci` on Linux and macOS for pushes and pull requests.
@@ -94,18 +94,18 @@ The Pages gallery uses Kitty shared memory with the bundled terminal assets.
 ## Dependencies
 
 The library and examples require Go 1.26.8. Dependencies resolve as published
-Go modules: `ntpicture v0.1.4`, `nt3d v0.8.0`, `ntgpuimage v0.6.0`, and
-`ntcanvas v0.1.3`. NTCharts is no longer a dependency.
+Go modules: `ntpicture v0.1.5`, `nt3d v0.8.1`, `ntgpuimage v0.6.0`, and
+`ntcanvas v0.1.4`. NTCharts is no longer a dependency.
 
 Run `task deps` to download dependencies for all three modules. Local sibling
 repositories and `.deps/` snapshots are no longer needed. CI uses the same
 module versions and checksums.
 
 The gallery's `ntcharts3d => ../..` replacement uses this repository directly.
-Both examples use go-booba v0.10.7 and its Bubble Tea WASM fork at `c397c32a5074`.
-The bundled ghostty-web assets support browser shared memory.
+Both examples use `nimbleterminal.dev/booba v0.12.1` and its Bubble Tea WASM fork at `536722b0bdb6`.
+The bundled ntwebterm assets support browser shared memory.
 
-The bundled ghostty-web graphics fixes restore frame updates in Safari and
+The bundled ntwebterm graphics fixes restore frame updates in Safari and
 prevent grey placeholder cells while dragging. Regenerate browser assets
 with `task web-assets` after changing the booba pin.
 
@@ -116,7 +116,7 @@ with `task web-assets` after changing the booba pin.
 - ntpicture: explicit terminal sessions, encoding, placement IDs, and presentation lifecycle.
 - ntcanvas: terminal wireframe surfaces through nt3d.
 - ntgpuimage: GPU execution and readback through nt3d (directly in the transport diagnostic).
-- go-booba and the browser terminal: WASM hosting and Kitty image display.
+- booba and the browser terminal: WASM hosting and Kitty image display.
 
 The chart uses nt3d's frame/render interfaces directly. Its custom `Renderer`,
 `Frame`, picking, and camera controls remain chart APIs; `nt3d/widget` is not

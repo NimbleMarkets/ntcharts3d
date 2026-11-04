@@ -5,12 +5,12 @@ go 1.26.8
 require (
 	charm.land/bubbletea/v2 v2.1.1
 	charm.land/lipgloss/v2 v2.0.6
-	github.com/NimbleMarkets/go-booba v0.10.7
 	github.com/charmbracelet/x/ansi v0.11.9
-	github.com/gogpu/gputypes v0.8.0
-	github.com/gogpu/wgpu v0.34.5
+	github.com/gogpu/gputypes v0.8.2
+	github.com/gogpu/wgpu v0.34.7
+	nimbleterminal.dev/booba v0.12.1
 	nimbleterminal.dev/ntgpuimage v0.6.0
-	nimbleterminal.dev/ntpicture v0.1.4
+	nimbleterminal.dev/ntpicture v0.1.5
 )
 
 require (
@@ -21,10 +21,10 @@ require (
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/go-webgpu/goffi v0.6.7 // indirect
+	github.com/go-webgpu/goffi v0.6.8 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
-	github.com/gogpu/naga v0.20.4 // indirect
+	github.com/gogpu/naga v0.21.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
@@ -36,6 +36,6 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 )
 
-replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20261009201241-c397c32a5074
+replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20261020122444-536722b0bdb6
 
-tool github.com/NimbleMarkets/go-booba/cmd/booba-assets
+tool nimbleterminal.dev/booba/cmd/booba-assets

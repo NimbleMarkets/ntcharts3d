@@ -1,6 +1,6 @@
 # ntcharts3d gallery
 
-The gallery runs natively or in a go-booba browser terminal. It has five tabs:
+The gallery runs natively or in a booba browser terminal. It has five tabs:
 
 - Scatter: a 16,000-point noisy sphere.
 - Surface: a 96×96 Perlin grid with a Height (µm) axis and fixed −1…1 range.
@@ -18,7 +18,7 @@ See the [dependency pins](../../README.md#dependencies).
 
 From the repository root, use `task gallery -- <flags>` to run the gallery.
 `task build-web` prepares both browser examples; `task serve-gallery` serves
-this one. go-booba v0.10.7 bundles the required terminal assets.
+this one. booba v0.12.1 bundles the required terminal assets.
 
 ## Native
 
@@ -98,7 +98,7 @@ go tool booba-assets web/
 python3 -m http.server 8766 --bind 127.0.0.1 -d web
 ```
 
-Open http://127.0.0.1:8766. This build uses go-booba v0.10.7 and its pinned
+Open http://127.0.0.1:8766. This build uses booba v0.12.1 and its pinned
 Bubble Tea WASM fork. The header shows `Kitty/shm` when shared memory is active.
 
 ## Rendering and transport

@@ -170,7 +170,7 @@ tasks:
       - go build -mod=readonly -o web/app.wasm .
 
   web-assets:
-    desc: Generate browser assets from the pinned go-booba version
+    desc: Generate browser assets from the pinned booba version
     cmds:
       - go -C examples/gallery tool booba-assets web/
       - go -C examples/transport tool booba-assets web/

@@ -1,6 +1,6 @@
 # Transport diagnostic
 
-Uses `ntgpuimage v0.3.0` and the repository's pinned `ntpicture`, with Go 1.26.8.
+Uses `ntgpuimage v0.6.0` and the repository's pinned `ntpicture`, with Go 1.26.8.
 Run `task deps` from the repository root first; see the root dependency notes.
 The Bubble Tea browser fork remains.
 
@@ -11,7 +11,7 @@ so it can provide a baseline alongside the gallery while chart code changes.
 A 3D point cloud (4 000 points on a sphere, depth-tested, instanced quads)
 rendered by the GPU through [`ntgpuimage`](https://github.com/NimbleTerminal/ntgpuimage) and shown inside
 a Bubble Tea layout by `ntpicture.Picture` with an explicit `TerminalSession`. The same source runs
-natively in a Kitty-capable terminal and in the browser under go-booba.
+natively in a Kitty-capable terminal and in the browser under booba.
 
 The header reports the image path (`png`, `rgba`, or `shm` for Kitty frames,
 `glyph` for the half-block fallback), application FPS, raster size, **R** (GPU render +
@@ -25,9 +25,9 @@ toggles select cached Picture configurations sharing one session and allocator.
 
 From the repository root, use `task transport -- <flags>` to run this example.
 `task build-web` prepares both browser examples; `task serve-transport` serves
-this one. go-booba v0.10.7 bundles the required terminal assets.
+this one. booba v0.12.1 bundles the required terminal assets.
 
-This example is its own Go module. The go-booba pin sets
+This example is its own Go module. The booba pin sets
 `TERM_PROGRAM=ghostty` so picture's Kitty probe runs in the browser.
 
 ```sh
@@ -47,7 +47,7 @@ python3 -m http.server -d web 8765   # then open http://localhost:8765/
 ```
 
 The browser build needs the pinned Bubble Tea fork `replace` already in
-`go.mod` from go-booba v0.10.7.
+`go.mod` from booba v0.12.1.
 
 Refresh the page after rebuilding, then press `m` to enable shared memory.
 The header should show `shm`; `m` again returns to the selected direct format.
@@ -147,7 +147,7 @@ loop ran at all:
   re-transmitted under the same id lands at the same address, so the gate
   dropped every frame and the sphere only repainted where a drag dirtied
   cells. The fix (renderer invalidation on any written chunk carrying
-  `ESC _ G`) is included in the terminal assets bundled with go-booba v0.10.7.
+  `ESC _ G`) is included in the terminal assets bundled with booba v0.12.1.
 
 Shared memory removes PNG encoding and decoding from that browser frame budget.
 

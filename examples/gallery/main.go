@@ -12,10 +12,10 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	booba "github.com/NimbleMarkets/go-booba"
 	"github.com/NimbleMarkets/ntcharts3d"
 	"github.com/aquilax/go-perlin"
 	zone "github.com/lrstanley/bubblezone/v2"
+	booba "nimbleterminal.dev/booba"
 	"nimbleterminal.dev/nt3d"
 	nt3dmath "nimbleterminal.dev/nt3d/math"
 	picture "nimbleterminal.dev/ntpicture"

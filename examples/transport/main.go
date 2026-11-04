@@ -1,5 +1,5 @@
 // transport shows a GPU-rendered 3D point cloud inside a Bubble Tea
-// layout through ntpicture, natively and in the browser via go-booba.
+// layout through ntpicture, natively and in the browser via booba.
 package main
 
 import (
@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"os"
 
-	booba "github.com/NimbleMarkets/go-booba"
+	booba "nimbleterminal.dev/booba"
 	picture "nimbleterminal.dev/ntpicture"
 )
 

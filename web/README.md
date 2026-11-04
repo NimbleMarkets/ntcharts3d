@@ -31,8 +31,8 @@ The builder writes `web/dist/`, including compiler versions and binary sizes.
 HTML, styles, and scripts in `web/` are source files. Generated files are ignored
 by Git. Relative asset URLs work at `/` and under `/ntcharts3d/`.
 
-The site uses Kitty shared memory and the terminal assets bundled with go-booba
-v0.10.7. Terminal initialization creates the image registry before Go starts.
+The site uses Kitty shared memory and the terminal assets bundled with booba
+v0.12.1. Terminal initialization creates the image registry before Go starts.
 The chart header reports `Kitty/shm` when frames use shared memory. No local
 ghostty-web checkout or asset overlay is needed.
 
