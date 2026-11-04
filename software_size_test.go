@@ -28,7 +28,7 @@ func kitty(t *testing.T) *Model {
 // took tells the chart that the frame it asked for took this long to draw.
 func took(t *testing.T, m *Model, elapsed time.Duration) {
 	f := m.frame()
-	_, cmd := m.Update(rendered{id: m.id, seq: m.seq, frame: image.NewRGBA(image.Rect(0, 0, f.Width, f.Height)), renderMode: Software, elapsed: elapsed})
+	_, cmd := m.Update(rendered{id: m.id, seq: m.seq, epoch: m.frameEpoch, raster: m.pic.RasterGeometry(), frame: image.NewRGBA(image.Rect(0, 0, f.Width, f.Height)), renderMode: Software, elapsed: elapsed})
 	drain(t, m, cmd)
 	drain(t, m, m.resolution())
 }

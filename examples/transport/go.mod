@@ -7,7 +7,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/gogpu/gputypes v0.8.2
-	github.com/gogpu/wgpu v0.34.7
+	github.com/gogpu/wgpu v0.34.5
 	nimbleterminal.dev/booba v0.12.1
 	nimbleterminal.dev/ntgpuimage v0.6.0
 	nimbleterminal.dev/ntpicture v0.1.5
@@ -24,7 +24,7 @@ require (
 	github.com/go-webgpu/goffi v0.6.8 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
-	github.com/gogpu/naga v0.21.2 // indirect
+	github.com/gogpu/naga v0.20.4 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect

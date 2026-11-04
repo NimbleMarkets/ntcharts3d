@@ -3,6 +3,14 @@
 Notable changes to [`ntcharts3d`](https://github.com/NimbleMarkets/ntcharts3d) are recorded here. Versions follow Semantic
 Versioning; the API may change during the v0.x series.
 
+## [0.3.6] - 2026-11-04
+
+- Prevent continuous camera motion from starving presentation. Display completed
+  camera frames while coalescing the latest pose; reject frames invalidated by
+  scene, raster geometry, or renderer changes.
+- Restore wgpu v0.34.5 and naga v0.20.4 to avoid Metal pipeline creation failures
+  and unintended software fallback.
+
 ## [0.3.5] - 2026-11-04
 
 - Update to `nt3d v0.8.1`, `ntpicture v0.1.5`, and `ntcanvas v0.1.4`.
@@ -142,6 +150,7 @@ applications.
 - Large scenes may be subsampled in fallback modes. See the
   [API limits](API.md#limits-and-fallback) for details.
 
+[0.3.6]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/NimbleMarkets/ntcharts3d/compare/v0.3.2...v0.3.3

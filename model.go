@@ -52,6 +52,7 @@ type Model struct {
 	medium                       picture.KittyMedium
 	kittyFormat                  picture.KittyFormat
 	id, seq, revision, wake      uint64
+	frameEpoch                   uint64 // Invalidates in-flight frames for changes other than camera motion.
 	started, busy, dirty, closed bool
 	zones                        *zone.Manager
 	ownZones                     bool
@@ -132,7 +133,7 @@ func (m *Model) SetCamera(c Camera) tea.Cmd {
 	m.camera = c.valid()
 	m.hover = nil
 	m.wake++
-	return m.changed(false)
+	return m.cameraChanged()
 }
 
 // Background returns the color behind the scene.

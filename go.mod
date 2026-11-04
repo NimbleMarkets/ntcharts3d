@@ -25,8 +25,8 @@ require (
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/gputypes v0.8.2 // indirect
-	github.com/gogpu/naga v0.21.2 // indirect
-	github.com/gogpu/wgpu v0.34.7 // indirect
+	github.com/gogpu/naga v0.20.4 // indirect
+	github.com/gogpu/wgpu v0.34.5 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect

@@ -18,6 +18,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		return m, nil
 	}
 	if before != m.pic.RasterGeometry() {
+		m.frameEpoch++
 		m.seq++
 		m.dirty = true
 		m.wake++
@@ -38,7 +39,10 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			}
 			m.renderMode = v.renderMode
 		}
-		if v.seq != m.seq {
+		// Camera-only changes may present the completed pose, then render the
+		// newest one. Scene, raster and mode changes still reject old work.
+		if v.epoch != m.frameEpoch || v.raster != m.pic.RasterGeometry() || v.renderMode != m.renderMode || (v.seq != m.seq && v.err != nil) {
+			m.dirty = true
 			return m, m.schedule()
 		}
 		m.renderMode = v.renderMode
@@ -89,7 +93,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 		if time.Since(m.lastInput).Seconds() >= m.camera.ResumeAfter {
 			m.camera.Beta += 1
-			return m, m.changed(false)
+			return m, m.cameraChanged()
 		}
 		return m, m.timer()
 	case tea.KeyPressMsg:
@@ -133,7 +137,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 		m.camera = m.camera.valid()
 		m.lastInput = time.Now()
-		return m, m.changed(false)
+		return m, m.cameraChanged()
 	case tea.MouseMsg:
 		return m, m.mouse(v)
 	}

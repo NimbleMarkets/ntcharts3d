@@ -14,17 +14,25 @@ import (
 )
 
 func (m *Model) changed(data bool) tea.Cmd {
-	m.seq++
-	m.dirty = true
+	m.frameEpoch++
 	if data {
 		m.revision++
 		m.hover = nil
 	}
+	return m.cameraChanged()
+}
+
+// Camera motion keeps completed frames usable while the newest pose is queued.
+func (m *Model) cameraChanged() tea.Cmd {
+	m.seq++
+	m.dirty = true
 	return m.schedule()
 }
 
 type rendered struct {
 	id, seq    uint64
+	epoch      uint64
+	raster     picture.RasterGeometry
 	frame      image.Image
 	wire       string
 	renderMode RenderMode
@@ -158,6 +166,7 @@ func (m *Model) schedule() tea.Cmd {
 	f := m.frame()
 	id, seq, renderMode, r, cols, rows := m.id, m.seq, m.renderMode, m.renderer, m.plotWidth(), m.plotHeight()
 	software := m.software
+	epoch, raster := m.frameEpoch, m.pic.RasterGeometry()
 	return tea.Batch(resolution, func() tea.Msg {
 		start := time.Now()
 		var img image.Image
@@ -183,7 +192,7 @@ func (m *Model) schedule() tea.Cmd {
 		if renderMode == Wireframe {
 			wire, err = renderWireframe(f, cols, rows)
 		}
-		return rendered{id, seq, img, wire, renderMode, err, time.Since(start)}
+		return rendered{id: id, seq: seq, epoch: epoch, raster: raster, frame: img, wire: wire, renderMode: renderMode, err: err, elapsed: time.Since(start)}
 	})
 }
 

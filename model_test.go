@@ -149,7 +149,7 @@ func TestSlowSoftwareFallbackPreservesRequestedMode(t *testing.T) {
 	defer m.Close()
 	frame := image.NewRGBA(image.Rect(0, 0, 4, 4))
 	for range 3 {
-		m.Update(rendered{id: m.id, seq: m.seq, frame: frame, renderMode: Software, elapsed: 151 * time.Millisecond})
+		m.Update(rendered{id: m.id, seq: m.seq, epoch: m.frameEpoch, raster: m.pic.RasterGeometry(), frame: frame, renderMode: Software, elapsed: 151 * time.Millisecond})
 	}
 	if m.RenderMode() != Wireframe || m.RequestedRenderMode() != Software {
 		t.Fatalf("slow fallback: active=%v requested=%v", m.RenderMode(), m.RequestedRenderMode())
@@ -213,13 +213,13 @@ func TestSingleFlightAndForeignMessages(t *testing.T) {
 	if m.schedule() != nil {
 		t.Fatal("second frame in flight")
 	}
-	_, cmd := m.Update(first())
-	if cmd == nil {
-		t.Fatal("stale completion lost dirty frame")
-	}
 	m.Update(rendered{id: m.id + 1})
 	if !m.busy {
 		t.Fatal("foreign completion cleared busy")
+	}
+	_, cmd := m.Update(first())
+	if cmd == nil {
+		t.Fatal("stale completion lost dirty frame")
 	}
 }
 

@@ -77,7 +77,7 @@ func (m *Model) mouse(msg tea.MouseMsg) tea.Cmd {
 	m.hover = nil
 	m.camera = m.camera.valid()
 	m.lastInput = time.Now()
-	return m.changed(false)
+	return m.cameraChanged()
 }
 
 func (m *Model) togglePicture() tea.Cmd {
