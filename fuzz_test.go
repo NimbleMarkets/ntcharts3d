@@ -75,6 +75,7 @@ func FuzzPaletteAt(f *testing.F) {
 	f.Add([]byte{1, 2, 3, 4, 5, 6, 7, 8}, .5)
 	f.Add([]byte{}, 0.)
 	f.Add([]byte{255, 255, 255, 255}, math.NaN())
+	f.Add([]byte{1, 2, 3, 4, 5, 6, 7, 8}, math.NaN())
 	f.Fuzz(func(t *testing.T, stops []byte, at float64) {
 		p := make(Palette, len(stops)/4)
 		for i := range p {

@@ -5,13 +5,14 @@ package ntcharts3d
 
 import (
 	"image/color"
+	"math"
 )
 
 // Palette is a sequence of color stops, independent of a numeric color domain.
 type Palette []color.RGBA
 
 // At interpolates the palette at t, clamped to [0,1]. An empty palette returns
-// transparent black.
+// transparent black. NaN returns the first color stop of a nonempty palette.
 func (s Palette) At(t float64) color.RGBA { return colorAt(s, t) }
 func defaultPalette() Palette {
 	return Palette{{45, 70, 150, 255}, {35, 185, 165, 255}, {245, 205, 70, 255}}
@@ -45,7 +46,7 @@ func colorAt(scale []color.RGBA, t float64) color.RGBA {
 	if len(scale) == 1 {
 		return scale[0]
 	}
-	if t <= 0 {
+	if math.IsNaN(t) || t <= 0 {
 		return scale[0]
 	}
 	if t >= 1 {
